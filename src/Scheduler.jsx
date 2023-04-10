@@ -1,5 +1,5 @@
 
-import { createRef, useEffect, Fragment, useState } from 'react';
+import { createRef, useEffect, useState } from 'react';
 
 import SchedulerEvent   from './SchedulerEvent';
 
@@ -58,8 +58,12 @@ function Scheduler( { currentDate, events = [] } ) {
     }, []);
     
     return (
-        <Fragment>
-            <table style= { { width: "100%" } } ref = { tableRef } role="table">
+        <div>
+            <table style = { { width: "100%" } } 
+                   ref   = { tableRef } 
+                   role="table"
+                   className="react-ui-calendar-table"
+            >
                 <thead> 
                     <tr>
                         <td></td>
@@ -91,7 +95,7 @@ function Scheduler( { currentDate, events = [] } ) {
                 </div>
             )) }
     
-        </Fragment>
+        </div>
                 
     )
     

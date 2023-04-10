@@ -39,12 +39,13 @@ function SchedulerEvent( { value = {}, columns = [] }) {
         <div style = { { top, height, left, width, backgroundColor, color, position: "absolute" } }
              
         >
-        
-            <small>{ formatTime(start) } - { formatTime(end) }</small>
-            <br/>
-            <strong>{ label }</strong> 
-            <br/>
-            
+            <div className="react-ui-calendar-eventHeader">
+                { formatTime(start) } - { formatTime(end) }
+            </div>
+            <div className="react-ui-calendar-eventBody">
+                { label }
+            </div>
+                    
         </div>
     )
     
