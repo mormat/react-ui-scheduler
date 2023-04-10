@@ -1,0 +1,12 @@
+# dependencies
+/node_modules
+
+# testing
+/coverage
+
+# component build
+/dist
+
+# misc
+package-lock.json
+/nbproject

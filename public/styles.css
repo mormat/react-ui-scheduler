@@ -1,0 +1,36 @@
+table {
+    
+    font:  caption;
+    color: rgba(0, 0, 0, 0.54);
+    
+    thead {
+        /*
+        tr {
+            height: 60px;
+        }
+        */
+        
+    }
+    
+    tbody {
+        
+        td {
+            border: 1px solid lightgray;
+        }
+    }
+    
+}
+
+strong {
+    font: caption;
+    font-weight: bold;
+}
+
+small {
+    font: caption;
+    font-size: 12px;
+}
+
+table tr {
+    height: 28px;
+}
