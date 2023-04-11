@@ -1,4 +1,17 @@
 {
+  "name": "trucmuche",
+  "author": "Mathieu Morel",
+  "license": "GPL v2",
+  "keywords": [
+    "react",
+    "ui",
+    "scheduler",
+    "react-component"
+  ],
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-draggable": "^4.4.5"
+  },
   "devDependencies": {
     "@babel/preset-env": "^7.21.4",
     "@babel/preset-react": "^7.18.6",
@@ -18,7 +31,7 @@
     "preview": "vite preview",
     "test": "jest"
   },
-  "dependencies": {
-    "react": "^18.2.0"
-  }
+  "files": [
+    "/dist"
+  ]
 }

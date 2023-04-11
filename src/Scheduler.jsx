@@ -134,7 +134,7 @@ const getDays = (currentDate) => {
     
         const key   = date.toISOString().substring(0, 10);
         const min = new Date(key + ' 00:00:00').getTime();
-        const max = new Date(key + ' 23:59:59').getTime();
+        const max = new Date(key + ' 24:00:00').getTime();
         
         days.push({ key, min, max });
     }

@@ -1,6 +1,8 @@
 
 import { createRef, useEffect, useState } from 'react';
 
+import DragAndDrop  from '../src/drag-n-drop';
+
 function SchedulerEvent( { value = {}, columns = [] }) {
     
     const [start,  setStart]  = useState(value.start);
@@ -26,18 +28,23 @@ function SchedulerEvent( { value = {}, columns = [] }) {
                 setHeight(length * ratio);
                 setTop(truc * ratio + rect.top);
                 
-                
             }
 
         }
         
     }, [start, end, columns]);
+    
+    const handleMouseDown = e => {
+        e.preventDefault();
+        const step = 15 * 60 * 1000;
+        DragAndDrop.dragEventPanel(e, {start, end, setStart, setEnd, columns, step});
+    }
 
     const { label, backgroundColor = "white", color } = value;
     
     return (
-        <div style = { { top, height, left, width, backgroundColor, color, position: "absolute" } }
-             
+        <div style = { { top, height, left, width, backgroundColor, color, position: "absolute", cursor: "move" } }
+             onMouseDown = { handleMouseDown }
         >
             <div className="react-ui-calendar-eventHeader">
                 { formatTime(start) } - { formatTime(end) }
