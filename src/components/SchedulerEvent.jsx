@@ -34,17 +34,23 @@ function SchedulerEvent( { value = {}, columns = [] }) {
         
     }, [start, end, columns]);
     
-    const handleMouseDown = e => {
+    const handleMouseDown = (e, action) => {
         e.preventDefault();
+        e.stopPropagation();
         const step = 15 * 60 * 1000;
-        DragAndDrop.dragEventPanel(e, {start, end, setStart, setEnd, columns, step});
+        if (action === 'move') {
+            DragAndDrop.dragMoveHandle(e, {start, end, setStart, setEnd, columns, step});
+        } else if (action === 'resize') {
+            DragAndDrop.dragResizeHandle(e, {start, end, setEnd, columns, step});
+        }
+        
     }
-
+    
     const { label, backgroundColor = "white", color } = value;
     
     return (
         <div style = { { top, height, left, width, backgroundColor, color, position: "absolute", cursor: "move" } }
-             onMouseDown = { handleMouseDown }
+             onMouseDown = { e => handleMouseDown(e, 'move') }
         >
             <div className="react-ui-scheduler-eventHeader">
                 { formatTime(start) } - { formatTime(end) }
@@ -52,7 +58,11 @@ function SchedulerEvent( { value = {}, columns = [] }) {
             <div className="react-ui-scheduler-eventBody">
                 { label }
             </div>
-                    
+            <div aria-label="resize event" 
+                 onMouseDown = { e => handleMouseDown(e, 'resize') }
+                 style = {{ position: 'absolute', width: '100%', height: '10px', bottom: 0, cursor: 'ns-resize'}}
+            >
+            </div>
         </div>
     )
     

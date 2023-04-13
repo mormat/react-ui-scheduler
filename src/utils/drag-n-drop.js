@@ -43,12 +43,11 @@ const calcValueFromColumnPosition = ( {clientY} , column) => {
     return timestamp;
 }
 
-const dragEventPanel = (e, {start, end, setStart, setEnd, columns, step = 1}) => {
+const dragMoveHandle = (e, {start, end, setStart, setEnd, columns, step = 1}) => {
     
     const length = end - start;
     
     let diff = start - calcValueFromColumnPosition(e, findNearestColumn(e, columns)) ;
-    // let step = 60 * 15 * 1000;
     
     const mousemove = (e) => {
         
@@ -86,5 +85,36 @@ const dragEventPanel = (e, {start, end, setStart, setEnd, columns, step = 1}) =>
     
 }
 
+const dragResizeHandle = (e, {start, end, setEnd, columns, step = 1}) => {
+    
+    const startColumn = findNearestColumn(e, columns);
+    const maxValue    = startColumn.data.max;
+    const diff = end - calcValueFromColumnPosition(e, startColumn) ;
 
-export default { dragEventPanel }
+    const mousemove = (e) => {
+    
+        let currentValue = calcValueFromColumnPosition(e, startColumn);
+        
+        let end = diff + currentValue;
+        
+        end = Math.max(end, start + step);
+        end = Math.min(end, maxValue);
+        
+        end = Math.floor(end / step) * step;
+        
+        setEnd(end);
+        
+    }
+    
+    const mouseup = (e) => {
+        window.removeEventListener('mousemove', mousemove);
+        window.removeEventListener('mouseup',   mouseup);
+    }
+    
+    window.addEventListener('mousemove', mousemove);
+    window.addEventListener('mouseup',   mouseup);
+    
+}
+
+
+export default { dragMoveHandle, dragResizeHandle }

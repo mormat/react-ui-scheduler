@@ -84,7 +84,7 @@ describe('[SchedulerEvent]',  function() {
 
         let providedValues = {}
 
-        jest.spyOn(DragAndDrop, 'dragEventPanel').mockImplementationOnce(
+        jest.spyOn(DragAndDrop, 'dragMoveHandle').mockImplementationOnce(
             function ({ clientX, clientY }, {start, end, setStart, setEnd, columns, step}) {
                 providedValues = { columns, clientX, clientY, step }
                 setStart(start - 25);
@@ -113,7 +113,44 @@ describe('[SchedulerEvent]',  function() {
         })
         expect(root).toHaveStyle("top:    100px");
         expect(root).toHaveStyle("height: 50px");
-    })
+    });
+    
+    test("Dragging the event resize handle should update the ending value of this event", () => {
+
+        let providedValues = {}
+
+        jest.spyOn(DragAndDrop, 'dragResizeHandle').mockImplementationOnce(
+            function ({ clientX, clientY }, {start, end, setEnd, columns, step}) {
+                providedValues = { columns, clientX, clientY, step }
+                setEnd(end - 25);
+            }
+        );
+
+        const event = { start: 125, end: 175 }
+        
+        const columns = [
+            {
+                data: { min: 100, max: 200 },
+                rect: { left: 10, top: 100, height: 100, width: 70}
+            }
+        ];
+        
+        const { container } = render(
+            <SchedulerEvent value = { event } columns = { columns }/>
+        );
+
+        const handle = screen.getByLabelText('resize event');
+        fireEvent.mouseDown(handle, {clientX: 10, clientY: 100} );
+        
+        expect(providedValues).toStrictEqual({
+            columns, clientX: 10, clientY: 100, step: 15 * minuteInterval
+        })
+        
+        const root   = container.children[0];
+        expect(root).toHaveStyle("top:    125px");
+        expect(root).toHaveStyle("height:  25px");
+        
+    });
         
 });
 
