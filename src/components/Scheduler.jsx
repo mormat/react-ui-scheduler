@@ -62,7 +62,7 @@ function Scheduler( { currentDate, events = [] } ) {
             <table style = { { width: "100%" } } 
                    ref   = { tableRef } 
                    role="table"
-                   className="react-ui-calendar-table"
+                   className="react-ui-scheduler-table"
             >
                 <thead> 
                     <tr>

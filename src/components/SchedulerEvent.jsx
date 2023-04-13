@@ -46,10 +46,10 @@ function SchedulerEvent( { value = {}, columns = [] }) {
         <div style = { { top, height, left, width, backgroundColor, color, position: "absolute", cursor: "move" } }
              onMouseDown = { handleMouseDown }
         >
-            <div className="react-ui-calendar-eventHeader">
+            <div className="react-ui-scheduler-eventHeader">
                 { formatTime(start) } - { formatTime(end) }
             </div>
-            <div className="react-ui-calendar-eventBody">
+            <div className="react-ui-scheduler-eventBody">
                 { label }
             </div>
                     

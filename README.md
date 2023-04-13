@@ -1,1 +1,1 @@
-# react-ui-calendar
+# react-ui-scheduler
