@@ -8,9 +8,9 @@ require('jest-mock-now')(new Date('2023-04-17'));
 
 import React from 'react';
 
-import Scheduler from '../src/Scheduler';
+import Scheduler from '../src/components/Scheduler';
 
-jest.mock('../src/SchedulerEvent', () => ( 
+jest.mock('../src/components/SchedulerEvent', () => ( 
 
     { value, columns = [] }) => {
 
@@ -246,31 +246,31 @@ test("Scheduler - Passing columns data to each item", async () => {
     expect( columns.map( ({ data }) => data ) ).toStrictEqual([
         {
             min: new Date("2023-04-03 00:00:00").getTime(), 
-            max: new Date("2023-04-03 23:59:59").getTime()
+            max: new Date("2023-04-03 24:00:00").getTime()
         },
         {
             min: new Date("2023-04-04 00:00:00").getTime(), 
-            max: new Date("2023-04-04 23:59:59").getTime()
+            max: new Date("2023-04-04 24:00:00").getTime()
         },
         {
             min: new Date("2023-04-05 00:00:00").getTime(), 
-            max: new Date("2023-04-05 23:59:59").getTime()
+            max: new Date("2023-04-05 24:00:00").getTime()
         },
         {
             min: new Date("2023-04-06 00:00:00").getTime(), 
-            max: new Date("2023-04-06 23:59:59").getTime()
+            max: new Date("2023-04-06 24:00:00").getTime()
         },
         {
             min: new Date("2023-04-07 00:00:00").getTime(), 
-            max: new Date("2023-04-07 23:59:59").getTime()
+            max: new Date("2023-04-07 24:00:00").getTime()
         },
         {
             min: new Date("2023-04-08 00:00:00").getTime(), 
-            max: new Date("2023-04-08 23:59:59").getTime()
+            max: new Date("2023-04-08 24:00:00").getTime()
         },
         {
             min: new Date("2023-04-09 00:00:00").getTime(), 
-            max: new Date("2023-04-09 23:59:59").getTime()
+            max: new Date("2023-04-09 24:00:00").getTime()
         },
     ]);
 

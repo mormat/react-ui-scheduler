@@ -1,7 +1,7 @@
 
 import { createRef, useEffect, useState } from 'react';
 
-import DragAndDrop  from '../src/drag-n-drop';
+import DragAndDrop  from '../utils/drag-n-drop';
 
 function SchedulerEvent( { value = {}, columns = [] }) {
     

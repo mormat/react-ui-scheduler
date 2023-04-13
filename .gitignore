@@ -6,6 +6,7 @@
 
 # component build
 /dist
+/include
 
 # misc
 package-lock.json

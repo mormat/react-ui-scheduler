@@ -6,7 +6,7 @@
 // @todo how to trigger event once ?
 import { act } from '@testing-library/react';
 
-import DragAndDrop from '../src/drag-n-drop';
+import DragAndDrop from '../src/utils/drag-n-drop';
 
 const second = 60 * 1000;
 

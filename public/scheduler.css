@@ -14,10 +14,12 @@
 .react-ui-calendar-eventHeader {
     font: caption;
     font-size: 12px;
+    padding:   3px 3px 0 3px;
 }
 
 .react-ui-calendar-eventBody {
     font: caption;
     font-weight: bold;
+    padding:     0 3px 0 3px;
 }
 

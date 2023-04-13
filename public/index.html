@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <title>react-ui-calendar</title>
+    <link rel="stylesheet" href="./scheduler.css">
+    <style>
+        h3 small { font-weight: normal }
+    </style>
+    <script crossorigin src="./scheduler.js"></script>
+  </head>
+  <body>
+      <h3>react-ui-calendar <small>(github : <a href="https://github.com/mormat/react-ui-calendar">https://github.com/mormat/react-ui-calendar</a>)</small></h3>
+      <div id="root">
+          The scheduler should be displayed here (if not then perhaps something wrong happened).
+      </div>
+      <script>
+          scheduler.bind('#root', {
+            events: [
+                {
+                    label: "Conference",
+                    start: "2023-04-11 14:00",
+                    end:   "2023-04-11 18:00",
+                    color: "white",
+                    backgroundColor: "rgb(2, 136, 209)"
+                },
+                {
+                    label: "Meeting",
+                    start: "2023-04-13 10:00",
+                    end:   "2023-04-13 18:00",
+                    color: "white",
+                    backgroundColor: "#9575cd"
+                },
+                {
+                    label: "Exhibition",
+                    start: "2023-04-15 10:00",
+                    end:   "2023-04-15 16:00",
+                    color: "white",
+                    backgroundColor: "#0fc4a7"
+                }
+          ]});
+      </script>
+  </body>
+</html>

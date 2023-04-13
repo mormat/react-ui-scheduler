@@ -4,9 +4,9 @@
 
 import {render, screen, fireEvent, act} from '@testing-library/react'
 
-import SchedulerEvent from '../src/SchedulerEvent';
+import SchedulerEvent from '../src/components/SchedulerEvent';
 
-import DragAndDrop  from '../src/drag-n-drop';
+import DragAndDrop  from '../src/utils/drag-n-drop';
 
 import { Fragment, createRef } from 'react';
 
