@@ -49,7 +49,8 @@ function SchedulerEvent( { value = {}, columns = [] }) {
     const { label, backgroundColor = "white", color } = value;
     
     return (
-        <div style = { { top, height, left, width, backgroundColor, color, position: "absolute", cursor: "move" } }
+        <div className  = "react-ui-scheduler-event"
+             style       = { { top, height, left, width, backgroundColor, color, position: "absolute", cursor: "move" } }
              onMouseDown = { e => handleMouseDown(e, 'move') }
         >
             <div className="react-ui-scheduler-eventHeader">
@@ -58,7 +59,7 @@ function SchedulerEvent( { value = {}, columns = [] }) {
             <div className="react-ui-scheduler-eventBody">
                 { label }
             </div>
-            <div aria-label="resize event" 
+            <div aria-label="resize event"  className = "react-ui-scheduler-resize-event"
                  onMouseDown = { e => handleMouseDown(e, 'resize') }
                  style = {{ position: 'absolute', width: '100%', height: '10px', bottom: 0, cursor: 'ns-resize'}}
             >

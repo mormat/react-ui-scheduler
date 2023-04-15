@@ -3,32 +3,33 @@
  */
 
 import {render, screen, fireEvent, act} from '@testing-library/react'
+import '@testing-library/jest-dom';
 
 require('jest-mock-now')(new Date('2023-04-17'));
 
-import React from 'react';
-
 import Scheduler from '../src/components/Scheduler';
+import DomUtils  from '../src/utils/dom';
 
-jest.mock('../src/components/SchedulerEvent', () => ( 
+describe('Scheduler events', () => {
 
-    { value, columns = [] }) => {
-
-        return (
-            <div className        = "mocked_event"
-                 data-columns     = { JSON.stringify(columns) } 
-                 data-event-start = { value.start }
-                 data-event-end   = { value.end }
-                 data-event-label = { value.label }
-            ></div>
-        )
-    }
-
-);
-
-describe('[Scheduler] initialization',  function() {
-
-    test("If date missing in params, the headers should be displaying the days of the current week", async() => {
+    beforeEach(() => {
+        
+        jest.spyOn(DomUtils, 'getHtmlTableInfos').mockReturnValue({
+            offset: { left: 0, top: 0 },
+            columns: [
+                { left: 30, top: 10, width: 9, height: 240 },
+                { left: 40, top: 10, width: 9, height: 240 },
+                { left: 50, top: 10, width: 9, height: 240 },
+                { left: 60, top: 10, width: 9, height: 240 },
+                { left: 70, top: 10, width: 9, height: 240 },
+                { left: 80, top: 10, width: 9, height: 240 },
+                { left: 90, top: 10, width: 9, height: 240 }
+            ]
+        });
+        
+    });
+    
+    test("Show the current week by default", async() => {
         
         const { container, debug } = render(
             <Scheduler />
@@ -49,11 +50,11 @@ describe('[Scheduler] initialization',  function() {
         ]);
         
     });
-
+    
     test.each([
         ['2023-04-05'],
         ['2023-04-09']
-    ])('If date is "%s", the headers should be displaying the days of the corresponding week', async (currentDate) => {
+    ])('If date is "%s", display the corresponding week', async (currentDate) => {
         
         const { container } = render(
             <Scheduler currentDate = { currentDate } />
@@ -95,195 +96,265 @@ describe('[Scheduler] initialization',  function() {
         ]);
         
     });
-});
-
-describe('Scheduler - Passing columns dimensions to each item',  function() {
     
-    const mockBoundingClientRects = function ()
-    {
-        const table = screen.getByRole('table');
-        const tbody = table.querySelector('tbody');
-        const headers = [...table.querySelectorAll('table thead th')];
-
-        jest.spyOn(tbody, 'getBoundingClientRect').mockReturnValue(
-            { left: 10, top: 20, width: 800, height: 300 }
-        );
-
-        const offsets = [100, 200, 300, 400, 500, 600, 700];
-        for (let i in offsets) {
-            jest.spyOn(headers[i], 'getBoundingClientRect').mockReturnValue(
-                { left: offsets[i], width: 100  }
-            );
-        }
-    };
-    
-    const expectedColumnsRects = [
-        {left: 100, width: 100, top: 20, height: 300 },
-        {left: 200, width: 100, top: 20, height: 300 },
-        {left: 300, width: 100, top: 20, height: 300 },
-        {left: 400, width: 100, top: 20, height: 300 },
-        {left: 500, width: 100, top: 20, height: 300 },
-        {left: 600, width: 100, top: 20, height: 300 },
-        {left: 700, width: 100, top: 20, height: 300 }
-    ];
-    
-    test("At initialization", () => {
-
-        jest.spyOn(React, 'useEffect').mockImplementationOnce((...params) => {
-            const [ fn, ...otherParams ] = params;
-            return React.useEffect(() => {
-                mockBoundingClientRects();
-                return fn();
-            }, ...otherParams);
-        });
+    test("Display scheduler events for the current week", async () => {
 
         const { container, debug } = render(
             <Scheduler 
                 events      = { [
                     {
-                        label: "Meeting",
+                        label: "Meeting last week (should not be visible)",
+                        start: "2023-03-27 10:00",
+                        end:   "2023-03-27 16:00"
+                    },
+                    {
+                        label: "Meeting this week",
                         start: "2023-04-03 10:00",
-                        end:   "2023-04-03 16:00"
+                        end:   "2023-04-03 16:00",
+                    },
+                    {
+                        label: "Meeting next week (should not be visible)",
+                        start: "2023-10-03 10:00",
+                        end:   "2023-10-03 16:00"
                     }
                 ] } 
                 currentDate = "2023-04-03" 
             />        
         );
 
-        const event   = container.querySelector('.mocked_event');
-        const columns = JSON.parse(event.getAttribute('data-columns'));
+        const events   = [...container.querySelectorAll('.react-ui-scheduler-event')];
 
-        expect(columns.map(c => c.rect)).toStrictEqual(expectedColumnsRects);
+        expect(events).toHaveLength(1);
+
+        expect(events[0].textContent).toContain("10:00 - 16:00");
+        expect(events[0].textContent).toContain("Meeting this week");
+
     });
-    
-    test("When resizing window", async () => {
 
+    test("Custom colors of scheduler event", () => {
+        
         const { container, debug } = render(
             <Scheduler 
                 events      = { [
                     {
-                        label: "Meeting",
+                        label: "Meeting this week",
                         start: "2023-04-03 10:00",
-                        end:   "2023-04-03 16:00"
+                        end:   "2023-04-03 16:00",
+                        color: "white",
+                        backgroundColor: "rgb(2, 136, 209)"
                     }
                 ] } 
                 currentDate = "2023-04-03" 
             />        
         );
 
-        mockBoundingClientRects();
-        await act(() => {
-            window.dispatchEvent(new CustomEvent('resize'));
+        const event   = container.querySelector('.react-ui-scheduler-event');
+
+        expect(event).toHaveStyle("color: white");
+        expect(event).toHaveStyle("background-color: rgb(2, 136, 209)");
+        
+    });
+
+
+    test("Initial position and size of scheduler event", async () => {
+
+        const { container, debug } = render(
+            <Scheduler 
+                events      = { [
+                    {
+                        label: "Meeting this week",
+                        start: "2023-04-03 10:00",
+                        end:   "2023-04-03 16:00",
+                    }
+                ] } 
+                currentDate = "2023-04-03" 
+            />        
+        );
+
+        const event   = container.querySelector('.react-ui-scheduler-event');
+
+        expect(event).toHaveStyle("left:    30px");
+        expect(event).toHaveStyle("width:    9px");
+        expect(event).toHaveStyle("top:    110px");
+        expect(event).toHaveStyle("height:  60px");
+
+
+    });
+
+    test("Position and size of scheduler event after resizing window", async () => {
+
+        const { container, debug } = render(
+            <Scheduler 
+                events      = { [
+                    {
+                        label: "Meeting this week",
+                        start: "2023-04-03 10:00",
+                        end:   "2023-04-03 16:00",
+                    }
+                ] } 
+                currentDate = "2023-04-03" 
+            />        
+        );
+
+        const event   = container.querySelector('.react-ui-scheduler-event');
+
+        jest.spyOn(DomUtils, 'getHtmlTableInfos').mockReturnValue({
+            offset: { left: 0, top: 0 },
+            columns: [
+              { left: 3, top: 10, width: 1, height: 120 },
+              { left: 4, top: 10, width: 1, height: 120 },
+              { left: 5, top: 10, width: 1, height: 120 },
+              { left: 6, top: 10, width: 1, height: 120 },
+              { left: 7, top: 10, width: 1, height: 120 },
+              { left: 8, top: 10, width: 1, height: 120 },
+              { left: 9, top: 10, width: 1, height: 120 }
+            ]
         });
 
-        const event   = container.querySelector('.mocked_event');
-        const columns = JSON.parse(event.getAttribute('data-columns'));
-        
-        expect(columns.map(c => c.rect)).toStrictEqual(expectedColumnsRects);
-        
+        await windowResize();
+
+        expect(event).toHaveStyle("left:    3px");
+        expect(event).toHaveStyle("width:   1px");
+        expect(event).toHaveStyle("top:     60px");
+        expect(event).toHaveStyle("height:  30px");
+
+    });
+
+    test.each([
+        [55,  20,  "01:00 - 07:00", '50px',  '20px'],
+        [55,  200, "18:00 - 00:00", '50px', '190px'],
+        [45,  110, "10:00 - 16:00", '40px', '110px'],
+        [65,  110, "10:00 - 16:00", '60px', '110px'],
+        [55,    0, "00:00 - 06:00", '50px',  '10px'],
+        [55,  250, "18:00 - 00:00", '50px', '190px'],
+        [0,   110, "10:00 - 16:00", '30px', '110px'],
+        [200, 110, "10:00 - 16:00", '90px', '110px'],
+        [55,  106, "09:30 - 15:30", '50px', '105px'], // checks that step is 15 minutes
+    ])('Drag and drop scheduler event to (%s, %s)', async (posX, posY, expectedText, expectedLeft, expectedTop) => {
+
+        const onEventChange = jest.fn();
+
+        const { container, debug } = render(
+            <Scheduler 
+                events      = { [
+                    {
+                        label: "Meeting this week",
+                        start: "2023-04-05 10:00",
+                        end:   "2023-04-05 16:00",
+                    }
+                ] } 
+                currentDate   = "2023-04-03" 
+                onEventChange = { onEventChange }
+            />        
+        );
+
+        const diff = 10;
+
+        const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
+        fireEvent.mouseDown(schedulerEvent, {clientX: 55, clientY: 110 + diff} );
+
+        await mouseMove( posX, posY + diff );
+        expect(schedulerEvent.textContent).toContain(expectedText);
+        expect(schedulerEvent).toHaveStyle(`left:    ${expectedLeft}`);
+        expect(schedulerEvent).toHaveStyle("width:   9px");
+        expect(schedulerEvent).toHaveStyle(`top:     ${expectedTop}`);
+        expect(schedulerEvent).toHaveStyle("height:  60px");
+
+        // Scheduler event has not been changed yet
+        expect(onEventChange).toHaveBeenCalledTimes(0);
+
+        await mouseUp( posX, posY + diff );
+
+        // @todo checks that the event has been changed here 
+        /*
+        expect(onEventChange).toHaveBeenCalledWith(
+            expect.objectContaining({
+                label: "Meeting this week",
+            })
+        ) */
+
+        // After dropping, the scheduler event remained unchanged if moving mouse
+        await mouseMove( 55, 110 + diff );
+        expect(schedulerEvent).toHaveStyle(`left:    ${expectedLeft}`);
+        expect(schedulerEvent).toHaveStyle("width:   9px");
+        expect(schedulerEvent).toHaveStyle(`top:     ${expectedTop}`);
+        expect(schedulerEvent).toHaveStyle("height:  60px");
+    });
+
+    test.each([
+        [55,  80,  "10:15", '2.5px'],
+        [55,  200, "20:00", '100px'],
+        [55,  300, "00:00", '140px'],
+        [45,  200, "20:00", '100px'],
+        [65,  200, "20:00", '100px'],
+        [55,    0, "10:15", '2.5px'],
+        [55,  250, "00:00", '140px'],
+        [0,   110, "11:00", '10px'],
+        [200, 110, "11:00", '10px'],
+        [55,  182, "18:00", '80px'], // checks that step is 15 minutes
+    ])('Move the resize handler of the scheduler event at (%s, %s)', async (posX, posY, expectedEndTime, expectedHeight) => {
+
+        const onEventChange = jest.fn();
+
+        const { container, debug } = render(
+            <Scheduler 
+                events      = { [
+                    {
+                        label: "Meeting this week",
+                        start: "2023-04-05 10:00",
+                        end:   "2023-04-05 16:00",
+                    }
+                ] } 
+                currentDate   = "2023-04-03" 
+                onEventChange = { onEventChange }
+            />        
+        );
+
+        const diff = 2;
+
+        const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
+
+        const resizeHandler = container.querySelector('.react-ui-scheduler-resize-event');
+        fireEvent.mouseDown(resizeHandler, {clientX: 55, clientY: 160 + diff} );
+
+        await mouseMove( posX, posY + diff);
+
+        expect(schedulerEvent.textContent).toContain(`10:00 - ${expectedEndTime}`);
+        expect(schedulerEvent).toHaveStyle("left:    50px");
+        expect(schedulerEvent).toHaveStyle("width:   9px");
+        expect(schedulerEvent).toHaveStyle("top:     110px");
+        expect(schedulerEvent).toHaveStyle(`height:  ${expectedHeight}`);
+
+        // Scheduler event has not been changed yet
+        expect(onEventChange).toHaveBeenCalledTimes(0);
+
+        await mouseUp( posX, posY + diff );
+
+        // @todo checks that the event has been changed here 
+        /*
+        expect(onEventChange).toHaveBeenCalledWith(
+            expect.objectContaining({
+                label: "Meeting this week",
+            })
+        ) */
+
+        // After dropping, the scheduler event remained unchanged if moving mouse
+        expect(schedulerEvent.textContent).toContain(`10:00 - ${expectedEndTime}`);
+        expect(schedulerEvent).toHaveStyle("left:    50px");
+        expect(schedulerEvent).toHaveStyle("width:   9px");
+        expect(schedulerEvent).toHaveStyle("top:     110px");
+        expect(schedulerEvent).toHaveStyle(`height:  ${expectedHeight}`);
     });
     
 });
 
-test("Display events for the current week only", () => {
-    
-    const { container, debug } = render(
-        <Scheduler 
-            events      = { [
-                {
-                    label: "Meeting",
-                    start: "2023-04-03 10:00",
-                    end:   "2023-04-03 16:00"
-                },
-                {
-                    label: "Past meeting",
-                    start: "2023-01-03 10:00",
-                    end:   "2023-01-03 16:00"
-                },
-                {
-                    label: "Future meeting",
-                    start: "2023-07-03 10:00",
-                    end:   "2023-07-03 16:00"
-                }
-            ] } 
-            currentDate = "2023-04-03" 
-        />        
-    );
-    
-    const events   = [...container.querySelectorAll('.mocked_event')];
-    
-    expect(events).toHaveLength(1);
-    
-    expect(events[0].getAttribute('data-event-label')).toBe("Meeting");
-    expect(events[0].getAttribute('data-event-start')).toEqual(
-        String(new Date("2023-04-03 10:00").getTime())
-    );
-    expect(events[0].getAttribute('data-event-end')).toEqual(
-        String(new Date("2023-04-03 16:00").getTime())
-    );
-
-    
+// shortcuts for triggering events on window
+const windowResize = () => act(() => {
+    window.dispatchEvent(new CustomEvent('resize'));
 });
-
-test("Scheduler - Passing columns data to each item", async () => {
-
-    const { container, debug } = render(
-        <Scheduler 
-            events      = { [
-                {
-                    label: "Meeting",
-                    start: "2023-04-03 10:00",
-                    end:   "2023-04-03 16:00"
-                }
-            ] } 
-            currentDate = "2023-04-03" 
-        />        
-    );
-
-    const event   = container.querySelector('.mocked_event');
-    const columns = JSON.parse(event.getAttribute('data-columns'));
-    
-    expect( columns.map( ({ data }) => data ) ).toStrictEqual([
-        {
-            min: new Date("2023-04-03 00:00:00").getTime(), 
-            max: new Date("2023-04-03 24:00:00").getTime()
-        },
-        {
-            min: new Date("2023-04-04 00:00:00").getTime(), 
-            max: new Date("2023-04-04 24:00:00").getTime()
-        },
-        {
-            min: new Date("2023-04-05 00:00:00").getTime(), 
-            max: new Date("2023-04-05 24:00:00").getTime()
-        },
-        {
-            min: new Date("2023-04-06 00:00:00").getTime(), 
-            max: new Date("2023-04-06 24:00:00").getTime()
-        },
-        {
-            min: new Date("2023-04-07 00:00:00").getTime(), 
-            max: new Date("2023-04-07 24:00:00").getTime()
-        },
-        {
-            min: new Date("2023-04-08 00:00:00").getTime(), 
-            max: new Date("2023-04-08 24:00:00").getTime()
-        },
-        {
-            min: new Date("2023-04-09 00:00:00").getTime(), 
-            max: new Date("2023-04-09 24:00:00").getTime()
-        },
-    ]);
-
+const mouseMove = (clientX, clientY) => act(() => {
+    window.dispatchEvent(new MouseEvent('mousemove', { clientX, clientY }));
 });
-
-const render_timestamp = (ts) => {
-    const date = new Date(ts);
-
-    // date formating is too verbose. Maybe switch to moment.js ?
-    return date.getFullYear() + '-' + 
-           String(date.getMonth() + 1).padStart(2, '0') + '-' +
-           String(date.getDate()).padStart(2, '0') + ' ' + 
-           String(date.getHours()).padStart(2, '0') + ':' + 
-           String(date.getMinutes()).padStart(2, '0');
-}
-
+const mouseUp   = (clientX, clientY) => act(() => {
+    window.dispatchEvent(new MouseEvent('mouseup', { clientX, clientY }));
+});
