@@ -7,25 +7,30 @@ import '@testing-library/jest-dom';
 
 require('jest-mock-now')(new Date('2023-04-17'));
 
-import Scheduler from '../src/components/Scheduler';
-import DomUtils  from '../src/utils/dom';
+import Scheduler from '../src/Scheduler';
+import DomUtils  from '../src/DomUtils';
 
-describe('Scheduler events', () => {
+const mockColumnInfos = ( {width = 10, height = 240, offsetX = 0, offsetY = 0} = {} ) => {
+    
+    const columnInfos = { y: 10 + offsetY, width, height, offsetX, offsetY };
+
+    jest.spyOn(DomUtils, 'getHtmlTableColumnsInfos').mockReturnValue([
+        { x: 3 * width + offsetX, ...columnInfos },
+        { x: 4 * width + offsetX, ...columnInfos },
+        { x: 5 * width + offsetX, ...columnInfos },
+        { x: 6 * width + offsetX, ...columnInfos },
+        { x: 7 * width + offsetX, ...columnInfos },
+        { x: 8 * width + offsetX, ...columnInfos },
+        { x: 9 * width + offsetX, ...columnInfos }
+    ]);
+    
+}
+
+describe('Scheduler', () => {
 
     beforeEach(() => {
         
-        jest.spyOn(DomUtils, 'getHtmlTableInfos').mockReturnValue({
-            offset: { left: 0, top: 0 },
-            columns: [
-                { left: 30, top: 10, width: 9, height: 240 },
-                { left: 40, top: 10, width: 9, height: 240 },
-                { left: 50, top: 10, width: 9, height: 240 },
-                { left: 60, top: 10, width: 9, height: 240 },
-                { left: 70, top: 10, width: 9, height: 240 },
-                { left: 80, top: 10, width: 9, height: 240 },
-                { left: 90, top: 10, width: 9, height: 240 }
-            ]
-        });
+        mockColumnInfos();
         
     });
     
@@ -154,7 +159,19 @@ describe('Scheduler events', () => {
         expect(event).toHaveStyle("background-color: rgb(2, 136, 209)");
         
     });
+    
+});
 
+describe.each([
+    [0, 0],
+    [15, 20]
+])('Scheduler at offset(%s, %s)', (offsetX, offsetY) => {
+
+    beforeEach(() => {
+        
+        mockColumnInfos({offsetX, offsetY});
+        
+    });
 
     test("Initial position and size of scheduler event", async () => {
 
@@ -174,7 +191,7 @@ describe('Scheduler events', () => {
         const event   = container.querySelector('.react-ui-scheduler-event');
 
         expect(event).toHaveStyle("left:    30px");
-        expect(event).toHaveStyle("width:    9px");
+        expect(event).toHaveStyle("width:   10px");
         expect(event).toHaveStyle("top:    110px");
         expect(event).toHaveStyle("height:  60px");
 
@@ -197,24 +214,13 @@ describe('Scheduler events', () => {
         );
 
         const event   = container.querySelector('.react-ui-scheduler-event');
-
-        jest.spyOn(DomUtils, 'getHtmlTableInfos').mockReturnValue({
-            offset: { left: 0, top: 0 },
-            columns: [
-              { left: 3, top: 10, width: 1, height: 120 },
-              { left: 4, top: 10, width: 1, height: 120 },
-              { left: 5, top: 10, width: 1, height: 120 },
-              { left: 6, top: 10, width: 1, height: 120 },
-              { left: 7, top: 10, width: 1, height: 120 },
-              { left: 8, top: 10, width: 1, height: 120 },
-              { left: 9, top: 10, width: 1, height: 120 }
-            ]
-        });
+        
+        mockColumnInfos( { width: 5, height: 120, offsetX, offsetY });
 
         await windowResize();
 
-        expect(event).toHaveStyle("left:    3px");
-        expect(event).toHaveStyle("width:   1px");
+        expect(event).toHaveStyle("left:    15px");
+        expect(event).toHaveStyle("width:   5px");
         expect(event).toHaveStyle("top:     60px");
         expect(event).toHaveStyle("height:  30px");
 
@@ -251,19 +257,19 @@ describe('Scheduler events', () => {
         const diff = 10;
 
         const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
-        fireEvent.mouseDown(schedulerEvent, {clientX: 55, clientY: 110 + diff} );
+        fireEvent.mouseDown(schedulerEvent, {clientX: 55 + offsetX, clientY: 110 + offsetY + diff} );
 
-        await mouseMove( posX, posY + diff );
+        await mouseMove( posX + offsetX, posY + offsetY + diff );
         expect(schedulerEvent.textContent).toContain(expectedText);
         expect(schedulerEvent).toHaveStyle(`left:    ${expectedLeft}`);
-        expect(schedulerEvent).toHaveStyle("width:   9px");
+        expect(schedulerEvent).toHaveStyle("width:  10px");
         expect(schedulerEvent).toHaveStyle(`top:     ${expectedTop}`);
         expect(schedulerEvent).toHaveStyle("height:  60px");
 
         // Scheduler event has not been changed yet
         expect(onEventChange).toHaveBeenCalledTimes(0);
 
-        await mouseUp( posX, posY + diff );
+        await mouseUp( posX + offsetX, posY + offsetY + diff );
 
         // @todo checks that the event has been changed here 
         /*
@@ -276,7 +282,7 @@ describe('Scheduler events', () => {
         // After dropping, the scheduler event remained unchanged if moving mouse
         await mouseMove( 55, 110 + diff );
         expect(schedulerEvent).toHaveStyle(`left:    ${expectedLeft}`);
-        expect(schedulerEvent).toHaveStyle("width:   9px");
+        expect(schedulerEvent).toHaveStyle("width:   10px");
         expect(schedulerEvent).toHaveStyle(`top:     ${expectedTop}`);
         expect(schedulerEvent).toHaveStyle("height:  60px");
     });
@@ -315,13 +321,13 @@ describe('Scheduler events', () => {
         const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
 
         const resizeHandler = container.querySelector('.react-ui-scheduler-resize-event');
-        fireEvent.mouseDown(resizeHandler, {clientX: 55, clientY: 160 + diff} );
+        fireEvent.mouseDown(resizeHandler, {clientX: 55 + offsetX, clientY: 160 + offsetY + diff} );
 
-        await mouseMove( posX, posY + diff);
+        await mouseMove( posX + offsetX, posY + offsetY + diff);
 
         expect(schedulerEvent.textContent).toContain(`10:00 - ${expectedEndTime}`);
         expect(schedulerEvent).toHaveStyle("left:    50px");
-        expect(schedulerEvent).toHaveStyle("width:   9px");
+        expect(schedulerEvent).toHaveStyle("width:   10px");
         expect(schedulerEvent).toHaveStyle("top:     110px");
         expect(schedulerEvent).toHaveStyle(`height:  ${expectedHeight}`);
 
@@ -341,7 +347,7 @@ describe('Scheduler events', () => {
         // After dropping, the scheduler event remained unchanged if moving mouse
         expect(schedulerEvent.textContent).toContain(`10:00 - ${expectedEndTime}`);
         expect(schedulerEvent).toHaveStyle("left:    50px");
-        expect(schedulerEvent).toHaveStyle("width:   9px");
+        expect(schedulerEvent).toHaveStyle("width:   10px");
         expect(schedulerEvent).toHaveStyle("top:     110px");
         expect(schedulerEvent).toHaveStyle(`height:  ${expectedHeight}`);
     });

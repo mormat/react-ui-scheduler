@@ -3,7 +3,7 @@
  * @jest-environment jsdom
  */
 
-import DomUtils from '../src/utils/dom';
+import DomUtils from '../src/DomUtils';
 
 test("Extract informations about HTML table element", () => {
     
@@ -22,28 +22,25 @@ test("Extract informations about HTML table element", () => {
     `;
     
     jest.spyOn(root, 'getBoundingClientRect').mockReturnValue(
-        { left: 20, top: 40, width: 600, height: 400 }
+        { x: 20, y: 40, width: 600, height: 400 }
     );
     
     const tbody   = root.querySelector('tbody');
     jest.spyOn(tbody, 'getBoundingClientRect').mockReturnValue(
-        { left: 30, top: 80, width: 400, height: 340 }    
+        { x: 30, y: 80, width: 400, height: 340 }    
     );
     
     const headers = [...root.querySelectorAll('thead th')];
     jest.spyOn(headers[0], 'getBoundingClientRect').mockReturnValue(
-        { left: 200, top: 60, width: 120, height: 50 }    
+        { x: 200, y: 60, width: 120, height: 50 }    
     );
     jest.spyOn(headers[1], 'getBoundingClientRect').mockReturnValue(
-        { left: 320, top: 60, width: 130, height: 50 }    
+        { x: 320, y: 60, width: 130, height: 50 }    
     );
     
-    expect(DomUtils.getHtmlTableInfos(root)).toStrictEqual({
-        offset: {left: 20, top: 40},
-        columns: [
-            { left: 200, top: 80, width: 120, height: 340},
-            { left: 320, top: 80, width: 130, height: 340},
-        ]
-    });
+    expect(DomUtils.getHtmlTableColumnsInfos(root)).toStrictEqual([
+        { x: 200, y: 80, width: 120, height: 340, offsetX: 20, offsetY: 40 },
+        { x: 320, y: 80, width: 130, height: 340, offsetX: 20, offsetY: 40 },
+    ]);
     
 });

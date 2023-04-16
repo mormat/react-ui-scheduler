@@ -1,7 +1,7 @@
 import React         from 'react'
 import ReactDOM      from 'react-dom/client'
 
-import Scheduler     from './components/Scheduler';
+import Scheduler     from './Scheduler';
 
 window.scheduler = {
     

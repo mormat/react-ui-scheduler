@@ -1,6 +1,6 @@
 
 
-import DragAndDrop from '../src/utils/test';
+import DragAndDrop from '../src/test';
 
 test('Typescript syntax should pass', () => {
 

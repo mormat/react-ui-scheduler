@@ -3,13 +3,12 @@ import { createRef, useEffect, useState } from 'react';
 
 import SchedulerEvent   from './SchedulerEvent';
 
-import DomUtils from '../utils/dom';
+import DomUtils from './DomUtils';
 
 function Scheduler( { currentDate, events = [] } ) {
     
     const [columns, setColumns] = useState([]);
     const parentRef             = createRef();
-    const tableRef              = createRef(); // @deprecated
     
     const days   = getDays(currentDate);
     const hours  = getHours(60);
@@ -23,23 +22,20 @@ function Scheduler( { currentDate, events = [] } ) {
     
     useEffect(() => {
         
-        const tableElement = tableRef.current;
+        const parentElement = parentRef.current;
         
         const resize = () => {
             
-            const htmlTableInfos = DomUtils.getHtmlTableInfos(parentRef.current);
+            const columns = DomUtils.getHtmlTableColumnsInfos(parentElement);
             
-            const columns = htmlTableInfos.columns.map( (rect, index) => {
+            setColumns(columns.map( (column, index) => {
                 
                 const min = days[index].min;
                 const max = days[index].max;
 
-                return { rect, data: { min, max } }
+                return { ...column, data: { min, max } }
                 
-            });
-            
-            
-            setColumns(columns);
+            }));
 
         }
         
@@ -54,10 +50,9 @@ function Scheduler( { currentDate, events = [] } ) {
     }, []);
     
     return (
-        <div ref = { parentRef } >
+        <div ref = { parentRef } style = { { position: "relative" } } >
             <table style = { { width: "100%" } } 
-                   ref   = { tableRef } 
-                   role="table"
+                   role  = "table"
                    className="react-ui-scheduler-table"
             >
                 <thead> 
