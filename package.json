@@ -1,6 +1,7 @@
 {
   "name": "@mormat/react-ui-scheduler",
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "React scheduler component",
   "author": "Mathieu Morel",
   "license": "GPL v2",
   "keywords": [
@@ -14,6 +15,14 @@
     "/include",
     "/public"
   ],
+  "homepage": "https://github.com/mormat/react-ui-scheduler",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mormat/react-ui-scheduler.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mormat/react-ui-scheduler/issues"
+  },
   "dependencies": {
     "react": "^18.2.0"
   },
