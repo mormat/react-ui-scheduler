@@ -25,11 +25,17 @@
           The scheduler should be displayed here (if not then maybe something wrong happened).
       </div>
       <script>
+          
+          var date  = new Date(Date.now());
+          var diff  = date.getDate() - date.getDay() + (date.getDay() == 0 ? -6:1);
+          var start = new Date( date.setDate(diff) ).getTime();
+          var interval = 24 * 60 * 60 * 1000;
+          
           scheduler.bind('#root', {
             events: [
                 {
                     label: "Conference",
-                    date: "2023-04-17",
+                    date: new Date(start + interval).toISOString().substring(0, 10),
                     startTime: "14:00",
                     endTime:   "18:00",
                     color: "white",
@@ -37,7 +43,7 @@
                 },
                 {
                     label: "Meeting",
-                    date:  "2023-04-19",
+                    date:  new Date(start + 3 * interval).toISOString().substring(0, 10),
                     startTime: "10:00",
                     endTime:   "18:00",
                     color: "white",
@@ -45,7 +51,7 @@
                 },
                 {
                     label: "Exhibition",
-                    date: "2023-04-21",
+                    date:  new Date(start + 5 * interval).toISOString().substring(0, 10),
                     startTime: "10:00",
                     endTime:   "16:00",
                     color: "white",
