@@ -1,14 +1,15 @@
 
 import { createRef, useEffect, useState } from 'react';
 
-function SchedulerEvent( { value = {}, columns = [] }) {
+function SchedulerEvent( { value = {}, columns = [], onDrop }) {
     
-    const [start,  setStart]  = useState(value.start);
-    const [end,    setEnd]    = useState(value.end);
-    const [left,   setLeft]   = useState(0);
-    const [top,    setTop]    = useState(0);
-    const [width,  setWidth]  = useState(0);
-    const [height, setHeight] = useState(0);
+    const [start,  setStart]    = useState(value.start);
+    const [end,    setEnd]      = useState(value.end);
+    const [left,   setLeft]     = useState(0);
+    const [top,    setTop]      = useState(0);
+    const [width,  setWidth]    = useState(0);
+    const [height, setHeight]   = useState(0);
+    const [draggingState, setDraggingState] = useState('');
     
     useEffect(() => {
 
@@ -29,10 +30,21 @@ function SchedulerEvent( { value = {}, columns = [] }) {
         
     }, [start, end, columns]);
     
+    useEffect(() => {
+        if (draggingState === 'drop') {
+            onDrop({...value, start, end})
+            
+            // console.log('dragging stopped', draggingState);
+        }
+        
+    }, [draggingState]);
+    
     const handleMouseDown = (e, action) => {
         
         e.preventDefault();
         e.stopPropagation();
+        
+        setDraggingState('dragstart');
         
         const actions = {
             'move':   moveSchedulerEvent,
@@ -44,8 +56,9 @@ function SchedulerEvent( { value = {}, columns = [] }) {
             
             const mousemove = actions[action](e, step);
             
-            // how to test event removal ?
             const mouseup = (e) => {
+                setDraggingState('drop');
+                // how to test event removal ?
                 window.removeEventListener('mousemove', mousemove);
                 window.removeEventListener('mouseup',   mouseup);
             }

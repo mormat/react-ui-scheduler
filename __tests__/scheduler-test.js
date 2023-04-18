@@ -109,18 +109,21 @@ describe('Scheduler', () => {
                 events      = { [
                     {
                         label: "Meeting last week (should not be visible)",
-                        start: "2023-03-27 10:00",
-                        end:   "2023-03-27 16:00"
+                        date:  "2023-03-27",
+                        startTime: "10:00",
+                        endTime:   "16:00"
                     },
                     {
                         label: "Meeting this week",
-                        start: "2023-04-03 10:00",
-                        end:   "2023-04-03 16:00",
+                        date:  "2023-04-03",
+                        startTime: "10:00",
+                        endTime:   "16:00",
                     },
                     {
                         label: "Meeting next week (should not be visible)",
-                        start: "2023-10-03 10:00",
-                        end:   "2023-10-03 16:00"
+                        date:  "2023-10-03",
+                        startTime: "10:00",
+                        endTime:   "16:00"
                     }
                 ] } 
                 currentDate = "2023-04-03" 
@@ -143,8 +146,9 @@ describe('Scheduler', () => {
                 events      = { [
                     {
                         label: "Meeting this week",
-                        start: "2023-04-03 10:00",
-                        end:   "2023-04-03 16:00",
+                        date:  "2023-04-03",
+                        startTime: "10:00",
+                        endTime:   "16:00",
                         color: "white",
                         backgroundColor: "rgb(2, 136, 209)"
                     }
@@ -159,6 +163,30 @@ describe('Scheduler', () => {
         expect(event).toHaveStyle("background-color: rgb(2, 136, 209)");
         
     });
+    
+    test("If onEventChange() listener not in params, dropping an event should not trigger error", async () => {
+        
+        const { container } = render(
+            <Scheduler 
+                events      = { [
+                    {
+                        label: "Meeting this week",
+                        date:  "2023-04-03",
+                        startTime: "10:00",
+                        endTime:   "16:00",
+                    }
+                ] } 
+                currentDate = "2023-04-03" 
+            />        
+        );
+
+
+        const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
+        fireEvent.mouseDown(schedulerEvent, {clientX: 55, clientY: 110} );
+        
+        await mouseUp();
+        
+    })
     
 });
 
@@ -180,8 +208,9 @@ describe.each([
                 events      = { [
                     {
                         label: "Meeting this week",
-                        start: "2023-04-03 10:00",
-                        end:   "2023-04-03 16:00",
+                        date:  "2023-04-03",
+                        startTime: "10:00",
+                        endTime:   "16:00",
                     }
                 ] } 
                 currentDate = "2023-04-03" 
@@ -205,8 +234,9 @@ describe.each([
                 events      = { [
                     {
                         label: "Meeting this week",
-                        start: "2023-04-03 10:00",
-                        end:   "2023-04-03 16:00",
+                        date:  "2023-04-03",
+                        startTime: "10:00",
+                        endTime:   "16:00",
                     }
                 ] } 
                 currentDate = "2023-04-03" 
@@ -227,16 +257,16 @@ describe.each([
     });
 
     test.each([
-        [55,  20,  "01:00 - 07:00", '50px',  '20px'],
-        [55,  200, "18:00 - 00:00", '50px', '190px'],
-        [45,  110, "10:00 - 16:00", '40px', '110px'],
-        [65,  110, "10:00 - 16:00", '60px', '110px'],
-        [55,    0, "00:00 - 06:00", '50px',  '10px'],
-        [55,  250, "18:00 - 00:00", '50px', '190px'],
-        [0,   110, "10:00 - 16:00", '30px', '110px'],
-        [200, 110, "10:00 - 16:00", '90px', '110px'],
-        [55,  106, "09:30 - 15:30", '50px', '105px'], // checks that step is 15 minutes
-    ])('Drag and drop scheduler event to (%s, %s)', async (posX, posY, expectedText, expectedLeft, expectedTop) => {
+        [55,  20,  "2023-04-05", "01:00", "07:00", '50px',  '20px'],
+        [55,  200, "2023-04-05", "18:00", "00:00", '50px', '190px'],
+        [45,  110, "2023-04-04", "10:00", "16:00", '40px', '110px'],
+        [65,  110, "2023-04-06", "10:00", "16:00", '60px', '110px'],
+        [55,    0, "2023-04-05", "00:00", "06:00", '50px',  '10px'],
+        [55,  250, "2023-04-05", "18:00", "00:00", '50px', '190px'],
+        [0,   110, "2023-04-03", "10:00", "16:00", '30px', '110px'],
+        [200, 110, "2023-04-09", "10:00", "16:00", '90px', '110px'],
+        [55,  106, "2023-04-05", "09:30", "15:30", '50px', '105px'], // checks that step is 15 minutes
+    ])('Drag and drop scheduler event to (%s, %s)', async (relativeX, relativeY, expectedDate, expectedStartTime, expectedEndTime, expectedLeft, expectedTop) => {
 
         const onEventChange = jest.fn();
 
@@ -245,8 +275,10 @@ describe.each([
                 events      = { [
                     {
                         label: "Meeting this week",
-                        start: "2023-04-05 10:00",
-                        end:   "2023-04-05 16:00",
+                        date:  "2023-04-05 ",
+                        startTime: "10:00",
+                        endTime:   "16:00",
+                        customVar: "foo"
                     }
                 ] } 
                 currentDate   = "2023-04-03" 
@@ -259,8 +291,8 @@ describe.each([
         const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
         fireEvent.mouseDown(schedulerEvent, {clientX: 55 + offsetX, clientY: 110 + offsetY + diff} );
 
-        await mouseMove( posX + offsetX, posY + offsetY + diff );
-        expect(schedulerEvent.textContent).toContain(expectedText);
+        await mouseMove( relativeX + offsetX, relativeY + offsetY + diff );
+        expect(schedulerEvent.textContent).toContain(expectedStartTime + ' - ' + expectedEndTime);
         expect(schedulerEvent).toHaveStyle(`left:    ${expectedLeft}`);
         expect(schedulerEvent).toHaveStyle("width:  10px");
         expect(schedulerEvent).toHaveStyle(`top:     ${expectedTop}`);
@@ -269,15 +301,17 @@ describe.each([
         // Scheduler event has not been changed yet
         expect(onEventChange).toHaveBeenCalledTimes(0);
 
-        await mouseUp( posX + offsetX, posY + offsetY + diff );
+        await mouseUp( relativeX + offsetX, relativeY + offsetY + diff );
 
-        // @todo checks that the event has been changed here 
-        /*
         expect(onEventChange).toHaveBeenCalledWith(
             expect.objectContaining({
-                label: "Meeting this week",
+                date:      expectedDate,
+                startTime: expectedStartTime,
+                endTime:   expectedEndTime,
+                label:     "Meeting this week",
+                customVar: "foo"
             })
-        ) */
+        )
 
         // After dropping, the scheduler event remained unchanged if moving mouse
         await mouseMove( 55, 110 + diff );
@@ -298,7 +332,7 @@ describe.each([
         [0,   110, "11:00", '10px'],
         [200, 110, "11:00", '10px'],
         [55,  182, "18:00", '80px'], // checks that step is 15 minutes
-    ])('Move the resize handler of the scheduler event at (%s, %s)', async (posX, posY, expectedEndTime, expectedHeight) => {
+    ])('Move the resize handler of the scheduler event at (%s, %s)', async (relativeX, relativeY, expectedEndTime, expectedHeight) => {
 
         const onEventChange = jest.fn();
 
@@ -307,8 +341,10 @@ describe.each([
                 events      = { [
                     {
                         label: "Meeting this week",
-                        start: "2023-04-05 10:00",
-                        end:   "2023-04-05 16:00",
+                        date:  "2023-04-05",
+                        startTime: "10:00",
+                        endTime:   "16:00",
+                        customVar: "foo"
                     }
                 ] } 
                 currentDate   = "2023-04-03" 
@@ -323,7 +359,7 @@ describe.each([
         const resizeHandler = container.querySelector('.react-ui-scheduler-resize-event');
         fireEvent.mouseDown(resizeHandler, {clientX: 55 + offsetX, clientY: 160 + offsetY + diff} );
 
-        await mouseMove( posX + offsetX, posY + offsetY + diff);
+        await mouseMove( relativeX + offsetX, relativeY + offsetY + diff);
 
         expect(schedulerEvent.textContent).toContain(`10:00 - ${expectedEndTime}`);
         expect(schedulerEvent).toHaveStyle("left:    50px");
@@ -334,15 +370,17 @@ describe.each([
         // Scheduler event has not been changed yet
         expect(onEventChange).toHaveBeenCalledTimes(0);
 
-        await mouseUp( posX, posY + diff );
+        await mouseUp( relativeX, relativeY + diff );
 
-        // @todo checks that the event has been changed here 
-        /*
         expect(onEventChange).toHaveBeenCalledWith(
             expect.objectContaining({
-                label: "Meeting this week",
+                date:      "2023-04-05",
+                startTime: "10:00",
+                endTime:   expectedEndTime,
+                label:     "Meeting this week",
+                customVar: "foo"
             })
-        ) */
+        )
 
         // After dropping, the scheduler event remained unchanged if moving mouse
         expect(schedulerEvent.textContent).toContain(`10:00 - ${expectedEndTime}`);

@@ -5,7 +5,7 @@ import SchedulerEvent   from './SchedulerEvent';
 
 import DomUtils from './DomUtils';
 
-function Scheduler( { currentDate, events = [] } ) {
+function Scheduler( { currentDate, onEventChange, events = [] } ) {
     
     const [columns, setColumns] = useState([]);
     const parentRef             = createRef();
@@ -49,6 +49,21 @@ function Scheduler( { currentDate, events = [] } ) {
         
     }, []);
     
+    const handleEventDrop = (event) => {
+        if (onEventChange) {
+            const { start, end, ...otherValues } = event;
+
+            const z = new Date().getTimezoneOffset() * 60 * 1000;
+            const range = [start, end].map( ts => new Date(ts - z).toISOString());
+
+            const date      = range[0].substring(0, 10);
+            const startTime = range[0].substring(11, 16);
+            const endTime   = range[1].substring(11, 16);
+
+            onEventChange({ date, startTime, endTime, ...otherValues})
+        }
+    }
+    
     return (
         <div ref = { parentRef } style = { { position: "relative" } } >
             <table style = { { width: "100%" } } 
@@ -82,7 +97,11 @@ function Scheduler( { currentDate, events = [] } ) {
         
             { filteredEvents.map( (event, index)  => (
                 <div key = { index }>
-                    <SchedulerEvent value = { event } columns = { columns } />
+                    <SchedulerEvent 
+                        value   = { event } 
+                        columns = { columns } 
+                        onDrop  = { handleEventDrop }
+                    />
                 </div>
             )) }
     
@@ -100,11 +119,11 @@ const formatDateOptions = {
 }
 
 const cleanEvent = (event) => {
-    const { start, end, ...otherValues } = event;
+    const { date, startTime, endTime, ...otherValues } = event;
     
     return {
-        start: new Date(start).getTime(),
-        end:   new Date(end).getTime(),
+        start: new Date(date + " " + startTime).getTime(),
+        end:   new Date(date + " " + endTime).getTime(),
         ...otherValues
     }
 }
