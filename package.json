@@ -10,7 +10,7 @@
     "scheduler",
     "react-component"
   ],
-  "main": "include/components/Scheduler.js",
+  "main": "include/Scheduler.js",
   "files": [
     "/include",
     "/public"
