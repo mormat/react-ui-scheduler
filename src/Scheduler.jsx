@@ -95,6 +95,15 @@ function Scheduler( { currentDate, onEventChange, events = [], minHour = "00:00"
                 </tbody>
             </table>
         
+            { columns.map( ( {x, y, width, height, offsetX, offsetY}, index) => (
+                <div key = { index } 
+                     className = "react-ui-scheduler-column"
+                     style = { { position: "absolute", left: x - offsetX, top: y - offsetY, width, height } }
+                >
+            
+                </div>
+            )) }
+        
             { filteredEvents.map( (event, index)  => (
                 <div key = { index }>
                     <SchedulerEvent 

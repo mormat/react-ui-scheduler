@@ -1,15 +1,41 @@
 .react-ui-scheduler-table {
     font:  caption;
     color: rgba(0, 0, 0, 0.54);
+    border-spacing: 0;
+}
+
+.react-ui-scheduler-table thead tr {
+    height: 38px;
+    
 }
 
 .react-ui-scheduler-table tbody td {
-    border: 1px solid lightgray;
+    border-bottom: 1px solid lightgray;
 }
 
-.react-ui-scheduler-table tbody tr {
-    height: 28px;
+.react-ui-scheduler-table tbody tr:first-child td {
+    border-top: 1px solid lightgray;
 }
+
+.react-ui-scheduler-table tbody th {
+    border-bottom: 1px solid lightgray;
+    border-left:   1px solid lightgray;
+    border-right:  1px solid lightgray;
+}
+
+.react-ui-scheduler-table tbody tr:first-child th {
+    border-top: 1px solid lightgray;
+}
+
+
+.react-ui-scheduler-table tbody tr {
+    height: 38px;
+}
+
+.react-ui-scheduler-column {
+    border-right: 1px solid lightgray;
+}
+
 
 .react-ui-scheduler-eventHeader {
     font: caption;
