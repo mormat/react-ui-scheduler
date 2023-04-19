@@ -179,6 +179,24 @@ describe('Scheduler', () => {
 
         expect(event).toHaveStyle("color: white");
         expect(event).toHaveStyle("background-color: rgb(2, 136, 209)");
+    
+    });
+    
+    test.each([
+        [null,    "50px"],
+        [100,     "100px"],
+        ["100px", "100px"],
+    ])("Custom row height %s", (rowHeight, expected) => {
+        
+        const { container, debug } = render(
+            <Scheduler rowHeight= { rowHeight } />        
+        );
+
+        const rows = [...container.querySelectorAll('tbody tr')];
+        
+        const rowsHeights = rows.map(t => t.style.height);
+        
+        expect(rowsHeights).toStrictEqual(Array(24).fill(expected));
         
     });
     

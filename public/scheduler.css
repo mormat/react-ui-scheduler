@@ -27,11 +27,6 @@
     border-top: 1px solid lightgray;
 }
 
-
-.react-ui-scheduler-table tbody tr {
-    height: 38px;
-}
-
 .react-ui-scheduler-column {
     border-right: 1px solid lightgray;
 }

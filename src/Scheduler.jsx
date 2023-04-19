@@ -5,7 +5,7 @@ import SchedulerEvent   from './SchedulerEvent';
 
 import DomUtils from './DomUtils';
 
-function Scheduler( { currentDate, onEventChange, events = [], minHour = "00:00", maxHour = "24:00"} ) {
+function Scheduler( { currentDate, onEventChange, events = [], minHour = "00:00", maxHour = "24:00", rowHeight } ) {
     
     const [columns, setColumns] = useState([]);
     const parentRef             = createRef();
@@ -82,7 +82,7 @@ function Scheduler( { currentDate, onEventChange, events = [], minHour = "00:00"
                 </thead>
                 <tbody>
                     { hours.map(hour => (
-                        <tr key = { hour }>
+                        <tr key = { hour } style = { { height: rowHeight || 50 }}>
                             <th>
                                 { hour }
                             </th>
