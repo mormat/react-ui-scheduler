@@ -122,7 +122,7 @@ function SchedulerEvent( { value = {}, columns = [], onDrop }) {
     const { label, backgroundColor = "white", color } = value;
     
     return (
-        <div className  = "react-ui-scheduler-event"
+        <div className  = { "react-ui-scheduler-event " + ( draggingState === 'dragstart' ? 'react-ui-scheduler-event-dragged' : '' ) }
              style       = { { top, height, left, width, backgroundColor, color, position: "absolute", cursor: "move" } }
              onMouseDown = { e => handleMouseDown(e, 'move') }
         >

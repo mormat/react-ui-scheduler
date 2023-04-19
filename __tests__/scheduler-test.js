@@ -342,11 +342,14 @@ describe.each([
         expect(schedulerEvent).toHaveStyle("width:  10px");
         expect(schedulerEvent).toHaveStyle(`top:     ${expectedTop}`);
         expect(schedulerEvent).toHaveStyle("height:  60px");
+        expect(schedulerEvent).toHaveClass('react-ui-scheduler-event-dragged')
+
 
         // Scheduler event has not been changed yet
         expect(onEventChange).toHaveBeenCalledTimes(0);
 
         await mouseUp( relativeX + offsetX, relativeY + offsetY + diff );
+        expect(schedulerEvent).not.toHaveClass('react-ui-scheduler-event-dragged')
 
         expect(onEventChange).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -357,6 +360,7 @@ describe.each([
                 customVar: "foo"
             })
         )
+        
 
         // After dropping, the scheduler event remained unchanged if moving mouse
         await mouseMove( 55, 110 + diff );
