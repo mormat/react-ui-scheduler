@@ -5,13 +5,13 @@ import SchedulerEvent   from './SchedulerEvent';
 
 import DomUtils from './DomUtils';
 
-function Scheduler( { currentDate, onEventChange, events = [] } ) {
+function Scheduler( { currentDate, onEventChange, events = [], minHour = "00:00", maxHour = "24:00"} ) {
     
     const [columns, setColumns] = useState([]);
     const parentRef             = createRef();
     
-    const days   = getDays(currentDate);
-    const hours  = getHours(60);
+    const days   = getDays(currentDate, minHour,  maxHour);
+    const hours  = getVerticalAxisLabels(minHour, maxHour, 60);
     
     const start  = Math.min(...days.map(t => t.min));
     const end    = Math.max(...days.map(t => t.max));
@@ -128,7 +128,7 @@ const cleanEvent = (event) => {
     }
 }
 
-const getDays = (currentDate) => {
+const getDays = (currentDate, minHour, maxHour) => {
     const days    = [];
     
     const date   = new Date(currentDate || Date.now());
@@ -143,23 +143,27 @@ const getDays = (currentDate) => {
         date.setDate(monday + i);
     
         const key   = date.toISOString().substring(0, 10);
-        const min = new Date(key + ' 00:00:00').getTime();
-        const max = new Date(key + ' 24:00:00').getTime();
+        const min = new Date(key + ' ' + minHour + ':00').getTime();
+        const max = new Date(key + ' ' + maxHour + ':00').getTime();
         
         days.push({ key, min, max });
     }
     return days;
 }
 
-const getHours = (minutesGap = 60) => {
-    const hours = [];
-    
-    for (let t = 0; t < 24 * 60; t += minutesGap) {
-        
-        hours.push(new Date(t * 60 * 1000).toISOString().slice(11, 16));
+const getVerticalAxisLabels = (minHour, maxHour, minutesGap = 60) => {
+
+    const labels = [];
+
+    const start = Number(minHour.split(':')[0]) * 60;
+    const limit = Number(maxHour.split(':')[0]) * 60;
+
+    for (let t = start; t < limit; t += minutesGap) {
+
+        labels.push(new Date(t * 60 * 1000).toISOString().slice(11, 16));
     }
-    
-    return hours
+
+    return labels
 }
 
 export default Scheduler

@@ -81,15 +81,15 @@ describe('Scheduler', () => {
         
     });
     
-    test("Display hours in each row of the table", () => {
+    test("Display all values in the hour scale (Y-axis)", () => {
 
         const { container } = render(
             <Scheduler />
         );
 
-        const rows = container.querySelectorAll('table tbody tr th');
+        const y_axis = container.querySelectorAll('table tbody tr th');
 
-        expect([...rows].map(t => t.innerHTML)).toStrictEqual([
+        expect([...y_axis].map(t => t.innerHTML)).toStrictEqual([
             '00:00', '01:00', '02:00',
             '03:00', '04:00', '05:00',
             '06:00', '07:00', '08:00',
@@ -101,6 +101,24 @@ describe('Scheduler', () => {
         ]);
         
     });
+    
+    test("Display the hour scale (Y-axis) with min and max value", () => {
+        
+        const { container } = render(
+            <Scheduler minHour="08:00" maxHour="20:00" />
+        );
+
+        const y_axis = container.querySelectorAll('table tbody tr th');
+
+        expect([...y_axis].map(t => t.innerHTML)).toStrictEqual([
+            '08:00', '09:00', '10:00', 
+            '11:00', '12:00', '13:00', 
+            '14:00', '15:00', '16:00', 
+            '17:00', '18:00', '19:00',
+        ]);
+        
+    });
+    
     
     test("Display scheduler events for the current week", async () => {
 
@@ -191,7 +209,7 @@ describe('Scheduler', () => {
 });
 
 describe.each([
-    [0, 0],
+    [0,  0],
     [15, 20]
 ])('Scheduler at offset(%s, %s)', (offsetX, offsetY) => {
 
@@ -223,6 +241,33 @@ describe.each([
         expect(event).toHaveStyle("width:   10px");
         expect(event).toHaveStyle("top:    110px");
         expect(event).toHaveStyle("height:  60px");
+
+    });
+    
+    test("Initial position and size of scheduler event with minHour and maxHour in hour scale", async () => {
+
+        const { container, debug } = render(
+            <Scheduler 
+                events      = { [
+                    {
+                        label: "Meeting this week",
+                        date:  "2023-04-03",
+                        startTime: "10:00",
+                        endTime:   "16:00",
+                    }
+                ] } 
+                currentDate = "2023-04-03" 
+                minHour     = "08:00"
+                maxHour     = "20:00"
+            />        
+        );
+
+        const event   = container.querySelector('.react-ui-scheduler-event');
+
+        expect(event).toHaveStyle("left:    30px");
+        expect(event).toHaveStyle("width:   10px");
+        expect(event).toHaveStyle("top:     50px");
+        expect(event).toHaveStyle("height: 120px");
 
 
     });

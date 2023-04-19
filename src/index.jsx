@@ -5,13 +5,16 @@ import Scheduler     from './Scheduler';
 
 window.scheduler = {
     
-    bind: (selector, {events = []} = {}) => {
+    bind: (selector, {events = [], minHour, maxHour} = {}) => {
         
         const element = document.querySelector(selector);
         
         ReactDOM.createRoot(element).render(
             <React.StrictMode>
-                <Scheduler events = { events } />
+                <Scheduler events  = { events  } 
+                           minHour = { minHour } 
+                           maxHour = { maxHour }
+                />
             </React.StrictMode>,
         );
         

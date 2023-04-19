@@ -32,6 +32,8 @@
           var interval = 24 * 60 * 60 * 1000;
           
           scheduler.bind('#root', {
+            minHour: "08:00",
+            maxHour: "20:00",
             events: [
                 {
                     label: "Conference",
