@@ -61,8 +61,8 @@ describe('Scheduler', () => {
         ['2023-04-09']
     ])('If date is "%s", display the corresponding week', async (currentDate) => {
         
-        const { container } = render(
-            <Scheduler currentDate = { currentDate } />
+        const { container, debug } = render(
+            <Scheduler currentDate= { currentDate } />
         );
 
         const headers = container.querySelectorAll('table thead th');
@@ -77,6 +77,28 @@ describe('Scheduler', () => {
             'Fri, April 7, 2023',
             'Sat, April 8, 2023',
             'Sun, April 9, 2023',
+        ]);
+        
+    });
+    
+    test('i18n', async () => {
+        
+        const { container, debug } = render(
+            <Scheduler locale="fr" />
+        );
+
+        const headers = container.querySelectorAll('table thead th');
+        
+        const columns = container.querySelectorAll('.mocked_column');
+        
+        expect([...headers].map(t => t.innerHTML)).toStrictEqual([
+            'lun. 17 avril 2023',
+            'mar. 18 avril 2023',
+            'mer. 19 avril 2023',
+            'jeu. 20 avril 2023',
+            'ven. 21 avril 2023',
+            'sam. 22 avril 2023',
+            'dim. 23 avril 2023',
         ]);
         
     });
@@ -199,6 +221,9 @@ describe('Scheduler', () => {
         expect(rowsHeights).toStrictEqual(Array(24).fill(expected));
         
     });
+    
+    
+    
     
     test("If onEventChange() listener not in params, dropping an event should not trigger error", async () => {
         

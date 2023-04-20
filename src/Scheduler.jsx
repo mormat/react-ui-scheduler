@@ -5,7 +5,7 @@ import SchedulerEvent   from './SchedulerEvent';
 
 import DomUtils from './DomUtils';
 
-function Scheduler( { currentDate, onEventChange, events = [], minHour = "00:00", maxHour = "24:00", rowHeight } ) {
+function Scheduler( { currentDate, onEventChange, events = [], minHour = "00:00", maxHour = "24:00", rowHeight, locale = "en" } ) {
     
     const [columns, setColumns] = useState([]);
     const parentRef             = createRef();
@@ -75,7 +75,7 @@ function Scheduler( { currentDate, onEventChange, events = [], minHour = "00:00"
                         <td></td>
                         { days.map( ({ key, min }, index) => (
                             <th key = { index } >
-                                { new Date(min).toLocaleString('en', formatDateOptions) }
+                                { new Date(min).toLocaleString(locale, formatDateOptions) }
                             </th>
                         )) }
                     </tr>
