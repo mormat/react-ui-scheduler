@@ -1,7 +1,7 @@
 
 import { createRef, useEffect, useState } from 'react';
 
-function SchedulerEvent( { value = {}, columns = [], onDrop }) {
+function SchedulerEvent( { value = {}, columns = [], onDrop, draggable }) {
     
     const [start,  setStart]    = useState(value.start);
     const [end,    setEnd]      = useState(value.end);
@@ -33,8 +33,6 @@ function SchedulerEvent( { value = {}, columns = [], onDrop }) {
     useEffect(() => {
         if (draggingState === 'drop') {
             onDrop({...value, start, end})
-            
-            // console.log('dragging stopped', draggingState);
         }
         
     }, [draggingState]);
@@ -43,6 +41,9 @@ function SchedulerEvent( { value = {}, columns = [], onDrop }) {
         
         e.preventDefault();
         e.stopPropagation();
+        if (!draggable) {
+            return;
+        }
         
         setDraggingState('dragstart');
         
@@ -118,12 +119,33 @@ function SchedulerEvent( { value = {}, columns = [], onDrop }) {
         
     }
 
+    const getMoveableItemClasses = () => {
+        let classes = [];
+        if (draggable) {
+            classes.push('react-ui-scheduler-event-draggable');
+        }
+        if (draggingState  === 'dragstart') {
+            classes.push('react-ui-scheduler-event-dragging');
+        }
+        return classes.join(' ');
+    }
+    
+    const getResizableItemClasses = () => {
+        let classes = [];
+        if (draggable) {
+            classes.push('react-ui-scheduler-event-resizable');
+        }
+        if (draggingState  === 'dragstart') {
+            classes.push('react-ui-scheduler-event-resizing');
+        }
+        return classes.join(' ');
+    }
     
     const { label, backgroundColor = "white", color } = value;
     
     return (
-        <div className  = { "react-ui-scheduler-event " + ( draggingState === 'dragstart' ? 'react-ui-scheduler-event-dragged' : '' ) }
-             style       = { { top, height, left, width, backgroundColor, color, position: "absolute", cursor: "move" } }
+        <div className  = { "react-ui-scheduler-event " + getMoveableItemClasses() }
+             style       = { { top, height, left, width, backgroundColor, color, position: "absolute" } }
              onMouseDown = { e => handleMouseDown(e, 'move') }
         >
             <div className="react-ui-scheduler-eventHeader">
@@ -132,9 +154,10 @@ function SchedulerEvent( { value = {}, columns = [], onDrop }) {
             <div className="react-ui-scheduler-eventBody">
                 { label }
             </div>
-            <div aria-label="resize event"  className = "react-ui-scheduler-resize-event"
+            <div aria-label="resize event"  
+                 className = { "react-ui-scheduler-resize-event " + getResizableItemClasses() }
                  onMouseDown = { e => handleMouseDown(e, 'resize') }
-                 style = {{ position: 'absolute', width: '100%', height: '10px', bottom: 0, cursor: 'ns-resize'}}
+                 style = {{ position: 'absolute', width: '100%', height: '10px', bottom: 0 }}
             >
             </div>
         </div>

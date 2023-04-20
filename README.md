@@ -78,15 +78,17 @@ Available props for this component are :
 * `currentDate`: date of the week to display in the scheduler (string format YYYY-MM-DD)
 * `minHour`: the minimum hour in the Y-axis (string format HH:MM)
 * `maxHour`: the maximum hour in the Y-axis (string format HH:MM)
+* `locale`: specify which i18n locale to use when formatting dates in the header (for instance 'en-US', 'fr-FR', etc.). It's the same locale string used by the javascript class [Intl.DateTimeFormat](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
+* `draggable`: if sets to true, enable drag and drop on scheduler events (default is true)
 * `rowHeight`: sets the height of a row (integer or a string like '50px')
 
 
 ## Styling
 
-The package contains a default css script that can be include like this
+The package contains a default css script that can be included like this
 ```
 import '@mormat/react-ui-scheduler/public/scheduler.css';
 ```
 
 An ordinary HTML table tag is used for rendering the scheduler so it can be easily customized with a css script. 
-> Note that the height of the `<tr/>` element in the `<tbody/>` section must remain the same for every rows as it used to compute the position of a scheduler event.
+> Note that the height of the `<tr/>` element in the `<tbody/>` section must remain the same for every rows as it is used to compute the position of a scheduler event.

@@ -14,6 +14,7 @@ window.scheduler = {
                 <Scheduler events  = { events  } 
                            minHour = { minHour } 
                            maxHour = { maxHour }
+                           draggable = { true }
                 />
             </React.StrictMode>,
         );

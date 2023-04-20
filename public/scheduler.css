@@ -31,11 +31,18 @@
     border-right: 1px solid lightgray;
 }
 
-.react-ui-scheduler-event-dragged {
+.react-ui-scheduler-event-draggable {
+    cursor: move;
+}
+
+.react-ui-scheduler-event-dragging {
     opacity: 0.7;
     z-index: 20;
 }
 
+.react-ui-scheduler-event-resizable {
+    cursor: ns-resize;
+}
 
 .react-ui-scheduler-eventHeader {
     font: caption;

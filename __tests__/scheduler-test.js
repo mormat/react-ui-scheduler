@@ -222,9 +222,6 @@ describe('Scheduler', () => {
         
     });
     
-    
-    
-    
     test("If onEventChange() listener not in params, dropping an event should not trigger error", async () => {
         
         const { container } = render(
@@ -343,6 +340,44 @@ describe.each([
         expect(event).toHaveStyle("height:  30px");
 
     });
+    
+    test("Disabling drag and drop on scheduler events", async () => {
+        
+        const { container, debug } = render(
+            <Scheduler 
+                events      = { [
+                    {
+                        label: "Meeting this week",
+                        date:  "2023-04-05 ",
+                        startTime: "10:00",
+                        endTime:   "16:00",
+                        customVar: "foo"
+                    }
+                ] } 
+                currentDate = "2023-04-03" 
+                draggable   = { false }
+            />        
+        );
+
+        const diff = 10;
+
+        const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
+        expect(schedulerEvent).not.toHaveClass('react-ui-scheduler-event-draggable');
+        fireEvent.mouseDown(schedulerEvent, {clientX: 55 + offsetX, clientY: 110 + offsetY + diff} );
+
+        await mouseMove( 55 + offsetX, 20 + offsetY + diff );
+        expect(schedulerEvent.textContent).toContain('10:00 - 16:00');
+        expect(schedulerEvent).toHaveStyle(`left:    50px`);
+        expect(schedulerEvent).toHaveStyle("width:   10px");
+        expect(schedulerEvent).toHaveStyle(`top:     110px`);
+        expect(schedulerEvent).toHaveStyle("height:  60px");
+        expect(schedulerEvent).not.toHaveClass('react-ui-scheduler-event-dragging');
+        
+        const resizeHandler = container.querySelector('.react-ui-scheduler-resize-event');
+        expect(resizeHandler).not.toHaveClass('react-ui-scheduler-event-resizable');
+        fireEvent.mouseDown(resizeHandler, {clientX: 55 + offsetX, clientY: 160 + offsetY + diff} );
+        
+    });
 
     test.each([
         [55,  20,  "2023-04-05", "01:00", "07:00", '50px',  '20px'],
@@ -377,6 +412,7 @@ describe.each([
         const diff = 10;
 
         const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
+        expect(schedulerEvent).toHaveClass('react-ui-scheduler-event-draggable');
         fireEvent.mouseDown(schedulerEvent, {clientX: 55 + offsetX, clientY: 110 + offsetY + diff} );
 
         await mouseMove( relativeX + offsetX, relativeY + offsetY + diff );
@@ -385,14 +421,14 @@ describe.each([
         expect(schedulerEvent).toHaveStyle("width:  10px");
         expect(schedulerEvent).toHaveStyle(`top:     ${expectedTop}`);
         expect(schedulerEvent).toHaveStyle("height:  60px");
-        expect(schedulerEvent).toHaveClass('react-ui-scheduler-event-dragged')
+        expect(schedulerEvent).toHaveClass('react-ui-scheduler-event-dragging')
 
 
         // Scheduler event has not been changed yet
         expect(onEventChange).toHaveBeenCalledTimes(0);
 
         await mouseUp( relativeX + offsetX, relativeY + offsetY + diff );
-        expect(schedulerEvent).not.toHaveClass('react-ui-scheduler-event-dragged')
+        expect(schedulerEvent).not.toHaveClass('react-ui-scheduler-event-dragging')
 
         expect(onEventChange).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -449,6 +485,7 @@ describe.each([
         const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
 
         const resizeHandler = container.querySelector('.react-ui-scheduler-resize-event');
+        expect(resizeHandler).toHaveClass('react-ui-scheduler-event-resizable');
         fireEvent.mouseDown(resizeHandler, {clientX: 55 + offsetX, clientY: 160 + offsetY + diff} );
 
         await mouseMove( relativeX + offsetX, relativeY + offsetY + diff);
@@ -458,12 +495,14 @@ describe.each([
         expect(schedulerEvent).toHaveStyle("width:   10px");
         expect(schedulerEvent).toHaveStyle("top:     110px");
         expect(schedulerEvent).toHaveStyle(`height:  ${expectedHeight}`);
+        expect(resizeHandler).toHaveClass('react-ui-scheduler-event-resizing');
 
         // Scheduler event has not been changed yet
         expect(onEventChange).toHaveBeenCalledTimes(0);
 
         await mouseUp( relativeX, relativeY + diff );
-
+        expect(resizeHandler).not.toHaveClass('react-ui-scheduler-event-resizing');
+        
         expect(onEventChange).toHaveBeenCalledWith(
             expect.objectContaining({
                 date:      "2023-04-05",

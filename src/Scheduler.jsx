@@ -5,7 +5,26 @@ import SchedulerEvent   from './SchedulerEvent';
 
 import DomUtils from './DomUtils';
 
-function Scheduler( { currentDate, onEventChange, events = [], minHour = "00:00", maxHour = "24:00", rowHeight, locale = "en" } ) {
+const defaults = {
+    events:  [],
+    minHour: '00:00',
+    maxHour: '24:00',
+    locale:  'en',
+    draggable: true,
+}
+
+function Scheduler( props ) {
+    
+    const { 
+        currentDate, 
+        onEventChange, 
+        events, 
+        minHour, 
+        maxHour, 
+        rowHeight, 
+        locale, 
+        draggable 
+    } = {...defaults, ...props}
     
     const [columns, setColumns] = useState([]);
     const parentRef             = createRef();
@@ -110,6 +129,7 @@ function Scheduler( { currentDate, onEventChange, events = [], minHour = "00:00"
                         value   = { event } 
                         columns = { columns } 
                         onDrop  = { handleEventDrop }
+                        draggable = { draggable }
                     />
                 </div>
             )) }
