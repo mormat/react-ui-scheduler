@@ -41,7 +41,7 @@ function SchedulerEvent( { value = {}, columns = [], onDrop, draggable }) {
         
         e.preventDefault();
         e.stopPropagation();
-        if (!draggable) {
+        if (e.button !== 0 || !draggable) {
             return;
         }
         

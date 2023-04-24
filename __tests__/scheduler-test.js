@@ -378,7 +378,7 @@ describe.each([
         fireEvent.mouseDown(resizeHandler, {clientX: 55 + offsetX, clientY: 160 + offsetY + diff} );
         
     });
-
+    
     test.each([
         [55,  20,  "2023-04-05", "01:00", "07:00", '50px',  '20px'],
         [55,  200, "2023-04-05", "18:00", "00:00", '50px', '190px'],
@@ -519,6 +519,45 @@ describe.each([
         expect(schedulerEvent).toHaveStyle("width:   10px");
         expect(schedulerEvent).toHaveStyle("top:     110px");
         expect(schedulerEvent).toHaveStyle(`height:  ${expectedHeight}`);
+    });
+    
+    test.each([[1], [2]])("Dragging an event is not supposed to work if mouse button %s pressed", async (button) => {
+        
+        const { container, debug } = render(
+            <Scheduler 
+                events      = { [
+                    {
+                        label: "Meeting this week",
+                        date:  "2023-04-05 ",
+                        startTime: "10:00",
+                        endTime:   "16:00",
+                        customVar: "foo"
+                    }
+                ] } 
+                currentDate = "2023-04-03" 
+            />        
+        );
+
+        const diff = 10;
+
+        const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
+        fireEvent.mouseDown(schedulerEvent, {clientX: 55 + offsetX, clientY: 110 + offsetY + diff, button} );
+
+        await mouseMove( 55 + offsetX, 20 + offsetY + diff );
+        expect(schedulerEvent.textContent).toContain('10:00 - 16:00');
+        expect(schedulerEvent).toHaveStyle(`left:    50px`);
+        expect(schedulerEvent).toHaveStyle("width:   10px");
+        expect(schedulerEvent).toHaveStyle(`top:     110px`);
+        expect(schedulerEvent).toHaveStyle("height:  60px");
+        expect(schedulerEvent).not.toHaveClass('react-ui-scheduler-event-dragging');
+        
+        const resizeHandler = container.querySelector('.react-ui-scheduler-resize-event');
+        fireEvent.mouseDown(resizeHandler, {clientX: 55 + offsetX, clientY: 160 + offsetY + diff, button} );
+        
+        await mouseMove( 55 + offsetX, 20 + offsetY + diff );
+        expect(schedulerEvent.textContent).toContain('10:00 - 16:00');
+        expect(schedulerEvent).toHaveStyle("height:  60px");
+        
     });
     
 });
