@@ -40,6 +40,10 @@
     z-index: 20;
 }
 
+.react-ui-scheduler-event-dragging-forbidden {
+    cursor: not-allowed;
+}
+
 .react-ui-scheduler-event-resizable {
     cursor: ns-resize;
 }

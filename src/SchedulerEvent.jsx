@@ -1,7 +1,7 @@
 
 import { createRef, useEffect, useState } from 'react';
 
-function SchedulerEvent( { value = {}, columns = [], onDrop, draggable }) {
+function SchedulerEvent( { value = {}, columns = [], onDrop, draggable, events }) {
     
     const [start,  setStart]    = useState(value.start);
     const [end,    setEnd]      = useState(value.end);
@@ -32,7 +32,12 @@ function SchedulerEvent( { value = {}, columns = [], onDrop, draggable }) {
     
     useEffect(() => {
         if (draggingState === 'drop') {
-            onDrop({...value, start, end})
+            if (isOverlapping()) {
+                setStart(value.start);
+                setEnd(value.end);
+            } else {
+                onDrop({...value, start, end})
+            }
         }
         
     }, [draggingState]);
@@ -126,7 +131,11 @@ function SchedulerEvent( { value = {}, columns = [], onDrop, draggable }) {
         }
         if (draggingState  === 'dragstart') {
             classes.push('react-ui-scheduler-event-dragging');
+            if (isOverlapping()) {
+                classes.push('react-ui-scheduler-event-dragging-forbidden');
+            }
         }
+        
         return classes.join(' ');
     }
     
@@ -137,8 +146,21 @@ function SchedulerEvent( { value = {}, columns = [], onDrop, draggable }) {
         }
         if (draggingState  === 'dragstart') {
             classes.push('react-ui-scheduler-event-resizing');
+            if (isOverlapping()) {
+                classes.push('react-ui-scheduler-event-resizing-forbidden');
+            }
         }
         return classes.join(' ');
+    }
+    
+    const isOverlapping = () => {
+        for (let event of events) {
+            if (event === value) continue;
+            if ( !(end - 1 < event.start || event.end - 1 < start) ) {
+                return true;
+            }
+        }
+        return false;
     }
     
     const { label, backgroundColor = "white", color } = value;

@@ -35,9 +35,25 @@ function Scheduler( props ) {
     const start  = Math.min(...days.map(t => t.min));
     const end    = Math.max(...days.map(t => t.max));
     
-    const filteredEvents = events.map(cleanEvent).filter(event => {
-        return event.start >= start && event.end <= end
-    });
+    const cleanEvents = (events) => {
+        
+        const cleaned = events.map((event) => {
+            const { date, startTime, endTime, ...otherValues } = event;
+
+            return {
+                start: new Date(date + " " + startTime).getTime(),
+                end:   new Date(date + " " + endTime).getTime(),
+                ...otherValues
+            }
+        });
+                
+        return cleaned.filter(event => {
+            return event.start >= start && event.end <= end
+        });
+        
+    };
+    
+    const [cleanedEvents, setCleanedEvents] = useState(cleanEvents(events));
     
     useEffect(() => {
         
@@ -68,9 +84,9 @@ function Scheduler( props ) {
         
     }, []);
     
-    const handleEventDrop = (event) => {
+    const handleEventDrop = (newValues, initial) => {
         if (onEventChange) {
-            const { start, end, ...otherValues } = event;
+            const { start, end, ...otherValues } = newValues;
 
             const z = new Date().getTimezoneOffset() * 60 * 1000;
             const range = [start, end].map( ts => new Date(ts - z).toISOString());
@@ -79,8 +95,13 @@ function Scheduler( props ) {
             const startTime = range[0].substring(11, 16);
             const endTime   = range[1].substring(11, 16);
 
-            onEventChange({ date, startTime, endTime, ...otherValues})
+            onEventChange({ date, startTime, endTime, ...otherValues});
         }
+        
+        const updatedEvents = cleanedEvents.map(e => {
+            return e === initial ? newValues : e;
+        });
+        setCleanedEvents(updatedEvents);
     }
     
     return (
@@ -123,13 +144,14 @@ function Scheduler( props ) {
                 </div>
             )) }
         
-            { filteredEvents.map( (event, index)  => (
+            { cleanedEvents.map( (event, index)  => (
                 <div key = { index }>
                     <SchedulerEvent 
                         value   = { event } 
                         columns = { columns } 
-                        onDrop  = { handleEventDrop }
+                        onDrop  = { (values) => handleEventDrop(values, event) }
                         draggable = { draggable }
+                        events    = { cleanedEvents }
                     />
                 </div>
             )) }

@@ -448,6 +448,73 @@ describe.each([
         expect(schedulerEvent).toHaveStyle(`top:     ${expectedTop}`);
         expect(schedulerEvent).toHaveStyle("height:  60px");
     });
+    
+    test("Prevent drag and drop of event over another event", async () => {
+        
+        const { container, debug } = render(
+            <Scheduler 
+                events      = { [
+                    {
+                        label: "Meeting",
+                        date:  "2023-04-03",
+                        startTime: "10:00",
+                        endTime:   "12:00",
+                        customVar: "foo"
+                    },
+                    {
+                        label: "Another meeting",
+                        date:  "2023-04-03",
+                        startTime: "16:00",
+                        endTime:   "18:00",
+                        customVar: "foo"
+                    }
+                ] } 
+                currentDate = "2023-04-03" 
+            />        
+        );
+
+        const diff = 10;
+
+        const schedulerEvents = [...container.querySelectorAll('.react-ui-scheduler-event')];
+
+        fireEvent.mouseDown(schedulerEvents[0], {clientX: 35 + offsetX, clientY: 110 + offsetY + diff} );
+        
+        // try to drop first event on second event
+        await mouseMove( 35 + offsetX, 170 + offsetY + diff );
+        expect(schedulerEvents[0]).toHaveClass('react-ui-scheduler-event-dragging-forbidden');
+        await mouseUp( 35 + offsetX, 170 + offsetY + diff );
+        expect(schedulerEvents[0].textContent).toContain('10:00 - 12:00');
+        
+        // moving the first event to 08:00
+        fireEvent.mouseDown(schedulerEvents[0], {clientX: 35 + offsetX, clientY: 100 + offsetY + diff} );
+        await mouseMove( 35 + offsetX, 80 + offsetY + diff );
+        expect(schedulerEvents[0]).not.toHaveClass('react-ui-scheduler-event-dragging-forbidden');
+        await mouseUp( 35 + offsetX, 80 + offsetY + diff );
+        expect(schedulerEvents[0].textContent).toContain('08:00 - 10:00');
+        
+        // moving the second event to 14:00
+        fireEvent.mouseDown(schedulerEvents[1], {clientX: 35 + offsetX, clientY: 160 + offsetY + diff} );
+        await mouseMove( 35 + offsetX, 140 + offsetY + diff );
+        expect(schedulerEvents[0]).not.toHaveClass('react-ui-scheduler-event-dragging-forbidden');
+        await mouseUp( 35 + offsetX, 140 + offsetY + diff );
+        expect(schedulerEvents[1].textContent).toContain('14:00 - 16:00');
+        
+        // try to drop first event on second event
+        fireEvent.mouseDown(schedulerEvents[0], {clientX: 35 + offsetX, clientY: 80 + offsetY + diff} );
+        await mouseMove( 35 + offsetX, 130 + offsetY + diff );
+        expect(schedulerEvents[0]).toHaveClass('react-ui-scheduler-event-dragging-forbidden');
+        await mouseUp( 35 + offsetX, 130 + offsetY + diff );
+        expect(schedulerEvents[0].textContent).toContain('08:00 - 10:00');
+        
+        const resizeHandlers = [...container.querySelectorAll('.react-ui-scheduler-resize-event')];
+        
+        // try to resize the first event over the second event
+        fireEvent.mouseDown(resizeHandlers[0], {clientX: 55 + offsetX, clientY: 100 + offsetY - 2} );
+        await mouseMove( 35 + offsetX, 150 + offsetY - 2 );
+        expect(resizeHandlers[0]).toHaveClass('react-ui-scheduler-event-resizing-forbidden');
+        await mouseUp( 35 + offsetX, 150 + offsetY - 2 );
+        expect(schedulerEvents[0].textContent).toContain('08:00 - 10:00');
+    })
 
     test.each([
         [55,  80,  "10:15", '2.5px'],
@@ -521,6 +588,8 @@ describe.each([
         expect(schedulerEvent).toHaveStyle(`height:  ${expectedHeight}`);
     });
     
+
+    
     test.each([[1], [2]])("Dragging an event is not supposed to work if mouse button %s pressed", async (button) => {
         
         const { container, debug } = render(
@@ -528,7 +597,7 @@ describe.each([
                 events      = { [
                     {
                         label: "Meeting this week",
-                        date:  "2023-04-05 ",
+                        date:  "2023-04-05",
                         startTime: "10:00",
                         endTime:   "16:00",
                         customVar: "foo"
