@@ -56,6 +56,8 @@ function App() {
         <Scheduler events = { schedulerEvents } 
                    onEventChange = { onEventChange }
                    currentDate = "2023-04-17" 
+                   minHour = "07:00"
+                   maxHour = "21:00"
         />
     )
 

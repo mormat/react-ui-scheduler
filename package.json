@@ -1,14 +1,15 @@
 {
   "name": "@mormat/react-ui-scheduler",
   "version": "0.2.1",
-  "description": "React scheduler component",
+  "description": "React scheduler component with draggable events",
   "author": "Mathieu Morel",
   "license": "GPL v2",
   "keywords": [
+    "calendar",
     "react",
-    "ui",
+    "react-component",
     "scheduler",
-    "react-component"
+    "ui"
   ],
   "main": "include/Scheduler.js",
   "files": [
