@@ -242,7 +242,7 @@ describe('Scheduler', () => {
         const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
         fireEvent.mouseDown(schedulerEvent, {clientX: 55, clientY: 110} );
         
-        await mouseUp();
+        mouseUp();
         
     })
     
@@ -332,7 +332,7 @@ describe.each([
         
         mockColumnInfos( { width: 5, height: 120, offsetX, offsetY });
 
-        await windowResize();
+        windowResize();
 
         expect(event).toHaveStyle("left:    15px");
         expect(event).toHaveStyle("width:   5px");
@@ -365,7 +365,7 @@ describe.each([
         expect(schedulerEvent).not.toHaveClass('react-ui-scheduler-event-draggable');
         fireEvent.mouseDown(schedulerEvent, {clientX: 55 + offsetX, clientY: 110 + offsetY + diff} );
 
-        await mouseMove( 55 + offsetX, 20 + offsetY + diff );
+        mouseMove( 55 + offsetX, 20 + offsetY + diff );
         expect(schedulerEvent.textContent).toContain('10:00 - 16:00');
         expect(schedulerEvent).toHaveStyle(`left:    50px`);
         expect(schedulerEvent).toHaveStyle("width:   10px");
@@ -415,7 +415,7 @@ describe.each([
         expect(schedulerEvent).toHaveClass('react-ui-scheduler-event-draggable');
         fireEvent.mouseDown(schedulerEvent, {clientX: 55 + offsetX, clientY: 110 + offsetY + diff} );
 
-        await mouseMove( relativeX + offsetX, relativeY + offsetY + diff );
+        mouseMove( relativeX + offsetX, relativeY + offsetY + diff );
         expect(schedulerEvent.textContent).toContain(expectedStartTime + ' - ' + expectedEndTime);
         expect(schedulerEvent).toHaveStyle(`left:    ${expectedLeft}`);
         expect(schedulerEvent).toHaveStyle("width:  10px");
@@ -427,7 +427,7 @@ describe.each([
         // Scheduler event has not been changed yet
         expect(onEventChange).toHaveBeenCalledTimes(0);
 
-        await mouseUp( relativeX + offsetX, relativeY + offsetY + diff );
+        mouseUp( relativeX + offsetX, relativeY + offsetY + diff );
         expect(schedulerEvent).not.toHaveClass('react-ui-scheduler-event-dragging')
 
         expect(onEventChange).toHaveBeenCalledWith(
@@ -442,7 +442,7 @@ describe.each([
         
 
         // After dropping, the scheduler event remained unchanged if moving mouse
-        await mouseMove( 55, 110 + diff );
+        mouseMove( 55, 110 + diff );
         expect(schedulerEvent).toHaveStyle(`left:    ${expectedLeft}`);
         expect(schedulerEvent).toHaveStyle("width:   10px");
         expect(schedulerEvent).toHaveStyle(`top:     ${expectedTop}`);
@@ -480,39 +480,39 @@ describe.each([
         fireEvent.mouseDown(schedulerEvents[0], {clientX: 35 + offsetX, clientY: 110 + offsetY + diff} );
         
         // try to drop first event on second event
-        await mouseMove( 35 + offsetX, 170 + offsetY + diff );
+        mouseMove( 35 + offsetX, 170 + offsetY + diff );
         expect(schedulerEvents[0]).toHaveClass('react-ui-scheduler-event-dragging-forbidden');
-        await mouseUp( 35 + offsetX, 170 + offsetY + diff );
+        mouseUp( 35 + offsetX, 170 + offsetY + diff );
         expect(schedulerEvents[0].textContent).toContain('10:00 - 12:00');
         
         // moving the first event to 08:00
         fireEvent.mouseDown(schedulerEvents[0], {clientX: 35 + offsetX, clientY: 100 + offsetY + diff} );
-        await mouseMove( 35 + offsetX, 80 + offsetY + diff );
+        mouseMove( 35 + offsetX, 80 + offsetY + diff );
         expect(schedulerEvents[0]).not.toHaveClass('react-ui-scheduler-event-dragging-forbidden');
-        await mouseUp( 35 + offsetX, 80 + offsetY + diff );
+        mouseUp( 35 + offsetX, 80 + offsetY + diff );
         expect(schedulerEvents[0].textContent).toContain('08:00 - 10:00');
         
         // moving the second event to 14:00
         fireEvent.mouseDown(schedulerEvents[1], {clientX: 35 + offsetX, clientY: 160 + offsetY + diff} );
-        await mouseMove( 35 + offsetX, 140 + offsetY + diff );
+        mouseMove( 35 + offsetX, 140 + offsetY + diff );
         expect(schedulerEvents[0]).not.toHaveClass('react-ui-scheduler-event-dragging-forbidden');
-        await mouseUp( 35 + offsetX, 140 + offsetY + diff );
+        mouseUp( 35 + offsetX, 140 + offsetY + diff );
         expect(schedulerEvents[1].textContent).toContain('14:00 - 16:00');
         
         // try to drop first event on second event
         fireEvent.mouseDown(schedulerEvents[0], {clientX: 35 + offsetX, clientY: 80 + offsetY + diff} );
-        await mouseMove( 35 + offsetX, 130 + offsetY + diff );
+        mouseMove( 35 + offsetX, 130 + offsetY + diff );
         expect(schedulerEvents[0]).toHaveClass('react-ui-scheduler-event-dragging-forbidden');
-        await mouseUp( 35 + offsetX, 130 + offsetY + diff );
+        mouseUp( 35 + offsetX, 130 + offsetY + diff );
         expect(schedulerEvents[0].textContent).toContain('08:00 - 10:00');
         
         const resizeHandlers = [...container.querySelectorAll('.react-ui-scheduler-resize-event')];
         
         // try to resize the first event over the second event
         fireEvent.mouseDown(resizeHandlers[0], {clientX: 55 + offsetX, clientY: 100 + offsetY - 2} );
-        await mouseMove( 35 + offsetX, 150 + offsetY - 2 );
+        mouseMove( 35 + offsetX, 150 + offsetY - 2 );
         expect(resizeHandlers[0]).toHaveClass('react-ui-scheduler-event-resizing-forbidden');
-        await mouseUp( 35 + offsetX, 150 + offsetY - 2 );
+        mouseUp( 35 + offsetX, 150 + offsetY - 2 );
         expect(schedulerEvents[0].textContent).toContain('08:00 - 10:00');
     })
 
@@ -555,7 +555,7 @@ describe.each([
         expect(resizeHandler).toHaveClass('react-ui-scheduler-event-resizable');
         fireEvent.mouseDown(resizeHandler, {clientX: 55 + offsetX, clientY: 160 + offsetY + diff} );
 
-        await mouseMove( relativeX + offsetX, relativeY + offsetY + diff);
+        mouseMove( relativeX + offsetX, relativeY + offsetY + diff);
 
         expect(schedulerEvent.textContent).toContain(`10:00 - ${expectedEndTime}`);
         expect(schedulerEvent).toHaveStyle("left:    50px");
@@ -567,7 +567,7 @@ describe.each([
         // Scheduler event has not been changed yet
         expect(onEventChange).toHaveBeenCalledTimes(0);
 
-        await mouseUp( relativeX, relativeY + diff );
+        mouseUp( relativeX, relativeY + diff );
         expect(resizeHandler).not.toHaveClass('react-ui-scheduler-event-resizing');
         
         expect(onEventChange).toHaveBeenCalledWith(
@@ -612,7 +612,7 @@ describe.each([
         const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
         fireEvent.mouseDown(schedulerEvent, {clientX: 55 + offsetX, clientY: 110 + offsetY + diff, button} );
 
-        await mouseMove( 55 + offsetX, 20 + offsetY + diff );
+        mouseMove( 55 + offsetX, 20 + offsetY + diff );
         expect(schedulerEvent.textContent).toContain('10:00 - 16:00');
         expect(schedulerEvent).toHaveStyle(`left:    50px`);
         expect(schedulerEvent).toHaveStyle("width:   10px");
@@ -623,7 +623,7 @@ describe.each([
         const resizeHandler = container.querySelector('.react-ui-scheduler-resize-event');
         fireEvent.mouseDown(resizeHandler, {clientX: 55 + offsetX, clientY: 160 + offsetY + diff, button} );
         
-        await mouseMove( 55 + offsetX, 20 + offsetY + diff );
+        mouseMove( 55 + offsetX, 20 + offsetY + diff );
         expect(schedulerEvent.textContent).toContain('10:00 - 16:00');
         expect(schedulerEvent).toHaveStyle("height:  60px");
         

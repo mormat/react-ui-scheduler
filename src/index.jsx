@@ -1,5 +1,5 @@
 import React         from 'react'
-import ReactDOM      from 'react-dom/client'
+import ReactDOM      from 'react-dom'
 
 import Scheduler     from './Scheduler';
 
@@ -7,9 +7,9 @@ window.scheduler = {
     
     bind: (selector, {events = [], minHour, maxHour} = {}) => {
         
-        const element = document.querySelector(selector);
+        // const element = ;
         
-        ReactDOM.createRoot(element).render(
+        ReactDOM.render(
             <React.StrictMode>
                 <Scheduler events  = { events  } 
                            minHour = { minHour } 
@@ -17,6 +17,7 @@ window.scheduler = {
                            draggable = { true }
                 />
             </React.StrictMode>,
+            document.querySelector(selector)
         );
         
     }
