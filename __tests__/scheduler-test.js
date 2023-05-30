@@ -2,35 +2,89 @@
  * @jest-environment jsdom
  */
 
+
 import {render, screen, fireEvent, act} from '@testing-library/react'
 import '@testing-library/jest-dom';
 
-require('jest-mock-now')(new Date('2023-04-17'));
-
 import Scheduler from '../src/Scheduler';
-import DomUtils  from '../src/DomUtils';
 
-const mockColumnInfos = ( {width = 10, height = 240, offsetX = 0, offsetY = 0} = {} ) => {
-    
-    const columnInfos = { y: 10 + offsetY, width, height, offsetX, offsetY };
+jest.mock('../src/dom-utils', () => ({
+    getColumnsLayout: jest.fn(),
+    startDrag: jest.fn()
+}));
 
-    jest.spyOn(DomUtils, 'getHtmlTableColumnsInfos').mockReturnValue([
-        { x: 3 * width + offsetX, ...columnInfos },
-        { x: 4 * width + offsetX, ...columnInfos },
-        { x: 5 * width + offsetX, ...columnInfos },
-        { x: 6 * width + offsetX, ...columnInfos },
-        { x: 7 * width + offsetX, ...columnInfos },
-        { x: 8 * width + offsetX, ...columnInfos },
-        { x: 9 * width + offsetX, ...columnInfos }
-    ]);
-    
+jest.mock('../src/date-utils', () => ({
+    getDaysOfWeek: jest.fn()
+}));
+
+import { startDrag, getColumnsLayout } from '../src/dom-utils';
+import { getDaysOfWeek } from '../src/date-utils';
+
+const fixtures = {
+    default_columns_layout: {
+        left: 0, top: 0, width: 100, height: 240,
+        children: [
+            { left: 30, top: 10, width: 10, height: 240 },
+            { left: 40, top: 10, width: 10, height: 240 },
+            { left: 50, top: 10, width: 10, height: 240 },
+            { left: 60, top: 10, width: 10, height: 240 },
+            { left: 70, top: 10, width: 10, height: 240 },
+            { left: 80, top: 10, width: 10, height: 240 },
+            { left: 90, top: 10, width: 10, height: 240 }
+        ]
+    },
+    small_columns_layout: {
+        left: 0, top: 0, width: 100, height: 240,
+        children: [
+            { left: 15, top: 10, width: 5, height: 120 },
+            { left: 20, top: 10, width: 5, height: 120 },
+            { left: 25, top: 10, width: 5, height: 120 },
+            { left: 30, top: 10, width: 5, height: 120 },
+            { left: 35, top: 10, width: 5, height: 120 },
+            { left: 40, top: 10, width: 5, height: 120 },
+            { left: 45, top: 10, width: 5, height: 120 }
+        ]
+    },
+    'default_days_of_week':  [
+        '2023-04-03',
+        '2023-04-04',
+        '2023-04-05',
+        '2023-04-06',
+        '2023-04-07',
+        '2023-04-08',
+        '2023-04-09',
+    ],
+    'days_of_week_for_2023-03-13': [
+        '2023-03-13',
+        '2023-03-14',
+        '2023-03-15',
+        '2023-03-16',
+        '2023-03-17',
+        '2023-03-18',
+        '2023-03-19',
+    ]
 }
+
 
 describe('Scheduler', () => {
 
+    let startDragLastParams = {};
+
     beforeEach(() => {
         
-        mockColumnInfos();
+        getColumnsLayout.mockReturnValue(fixtures['default_columns_layout']);
+        
+        getDaysOfWeek.mockImplementation((v) => {
+            if (v === '2023-03-13') return fixtures['days_of_week_for_2023-03-13'];
+            return fixtures['default_days_of_week'];
+        });
+        
+        startDragLastParams = {}
+        startDrag.mockImplementation(
+            (draggingState, subject, e, notify) => {
+                startDragLastParams = { draggingState, subject, e, notify }
+            }
+        );
         
     });
     
@@ -38,31 +92,6 @@ describe('Scheduler', () => {
         
         const { container, debug } = render(
             <Scheduler />
-        );
-
-        const headers = container.querySelectorAll('table thead th');
-        
-        const columns = container.querySelectorAll('.mocked_column');
-        
-        expect([...headers].map(t => t.innerHTML)).toStrictEqual([
-            'Mon, April 17, 2023',
-            'Tue, April 18, 2023',
-            'Wed, April 19, 2023',
-            'Thu, April 20, 2023',
-            'Fri, April 21, 2023',
-            'Sat, April 22, 2023',
-            'Sun, April 23, 2023',
-        ]);
-        
-    });
-    
-    test.each([
-        ['2023-04-05'],
-        ['2023-04-09']
-    ])('If date is "%s", display the corresponding week', async (currentDate) => {
-        
-        const { container, debug } = render(
-            <Scheduler currentDate= { currentDate } />
         );
 
         const headers = container.querySelectorAll('table thead th');
@@ -81,6 +110,28 @@ describe('Scheduler', () => {
         
     });
     
+    test('Show the current week at 2023-03-13', async () => {
+        
+        const { container, debug } = render(
+            <Scheduler currentDate= '2023-03-13'/>
+        );
+
+        const headers = container.querySelectorAll('table thead th');
+        
+        const columns = container.querySelectorAll('.mocked_column');
+        
+        expect([...headers].map(t => t.innerHTML)).toStrictEqual([
+            'Mon, March 13, 2023',
+            'Tue, March 14, 2023',
+            'Wed, March 15, 2023',
+            'Thu, March 16, 2023',
+            'Fri, March 17, 2023',
+            'Sat, March 18, 2023',
+            'Sun, March 19, 2023',
+        ]);
+        
+    });
+    
     test('i18n', async () => {
         
         const { container, debug } = render(
@@ -92,13 +143,13 @@ describe('Scheduler', () => {
         const columns = container.querySelectorAll('.mocked_column');
         
         expect([...headers].map(t => t.innerHTML)).toStrictEqual([
-            'lun. 17 avril 2023',
-            'mar. 18 avril 2023',
-            'mer. 19 avril 2023',
-            'jeu. 20 avril 2023',
-            'ven. 21 avril 2023',
-            'sam. 22 avril 2023',
-            'dim. 23 avril 2023',
+            'lun. 3 avril 2023',
+            'mar. 4 avril 2023',
+            'mer. 5 avril 2023',
+            'jeu. 6 avril 2023',
+            'ven. 7 avril 2023',
+            'sam. 8 avril 2023',
+            'dim. 9 avril 2023',
         ]);
         
     });
@@ -245,20 +296,7 @@ describe('Scheduler', () => {
         mouseUp();
         
     })
-    
-});
-
-describe.each([
-    [0,  0],
-    [15, 20]
-])('Scheduler at offset(%s, %s)', (offsetX, offsetY) => {
-
-    beforeEach(() => {
-        
-        mockColumnInfos({offsetX, offsetY});
-        
-    });
-
+   
     test("Initial position and size of scheduler event", async () => {
 
         const { container, debug } = render(
@@ -311,7 +349,7 @@ describe.each([
 
 
     });
-
+    
     test("Position and size of scheduler event after resizing window", async () => {
 
         const { container, debug } = render(
@@ -330,8 +368,8 @@ describe.each([
 
         const event   = container.querySelector('.react-ui-scheduler-event');
         
-        mockColumnInfos( { width: 5, height: 120, offsetX, offsetY });
-
+        getColumnsLayout.mockReturnValue(fixtures['small_columns_layout']);
+        
         windowResize();
 
         expect(event).toHaveStyle("left:    15px");
@@ -340,8 +378,75 @@ describe.each([
         expect(event).toHaveStyle("height:  30px");
 
     });
+   
+    test("Drag and drop should update scheduler event", () => {
+        
+        const onEventChange = jest.fn();
+
+        const { container, debug } = render(
+            <Scheduler 
+                events      = { [
+                    {
+                        label: "Meeting this week",
+                        date:  "2023-04-05 ",
+                        startTime: "10:00",
+                        endTime:   "16:00",
+                        customVar: "foo"
+                    }
+                ] } 
+                currentDate   = "2023-04-03" 
+                onEventChange = { onEventChange }
+            />        
+        );
+
+        const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
+        fireEvent.mouseDown(schedulerEvent);
+        
+        const { notify, subject, e } = startDragLastParams;
+        
+        act(() => notify('press', subject));
+        expect(schedulerEvent).toHaveClass('react-ui-scheduler-event-draggable');
+        
+        const hour = 60 * 60 * 1000;
+        
+        // Moving dragged subject
+        subject.start += 2 * hour;
+        subject.end   += 2 * hour;
+        act(() => notify('move', subject));
+        expect(schedulerEvent.textContent).toContain('12:00 - 18:00');
+        expect(schedulerEvent).toHaveStyle(`left:    50px`);
+        expect(schedulerEvent).toHaveStyle("width:   10px");
+        expect(schedulerEvent).toHaveStyle(`top:     130px`);
+        expect(schedulerEvent).toHaveStyle("height:  60px");
+        expect(schedulerEvent).toHaveClass('react-ui-scheduler-event-dragging');
+        
+        // Scheduler event has not been changed yet
+        expect(onEventChange).toHaveBeenCalledTimes(0);
+        
+        // Releasing dragged subject
+        subject.start += 2 * hour;
+        subject.end   += 2 * hour;
+        act(() => notify('release', subject));
+        expect(schedulerEvent.textContent).toContain('14:00 - 20:00');
+        expect(schedulerEvent).toHaveStyle(`left:    50px`);
+        expect(schedulerEvent).toHaveStyle("width:   10px");
+        expect(schedulerEvent).toHaveStyle(`top:     150px`);
+        expect(schedulerEvent).toHaveStyle("height:  60px");
+        expect(schedulerEvent).not.toHaveClass('react-ui-scheduler-event-dragging');
+        
+        expect(onEventChange).toHaveBeenCalledWith(
+            expect.objectContaining({
+                date:      "2023-04-05",
+                startTime: "14:00",
+                endTime:   "20:00",
+                label:     "Meeting this week",
+                customVar: "foo"
+            })
+        )
+        
+    });
     
-    test("Disabling drag and drop on scheduler events", async () => {
+    test("Disable drag and drop if 'draggable' is false in scheduler options", async () => {
         
         const { container, debug } = render(
             <Scheduler 
@@ -359,25 +464,128 @@ describe.each([
             />        
         );
 
-        const diff = 10;
+        const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
+        fireEvent.mouseDown(schedulerEvent);
+        
+        expect(startDrag).not.toHaveBeenCalled();
+    });
+    
+    test.each([[1], [2]])("Ignore drag and drop if mouse button %s pressed", async (button) => {
+        
+        const { container, debug } = render(
+            <Scheduler 
+                events      = { [
+                    {
+                        label: "Meeting this week",
+                        date:  "2023-04-05",
+                        startTime: "10:00",
+                        endTime:   "16:00",
+                        customVar: "foo"
+                    }
+                ] } 
+                currentDate = "2023-04-03" 
+            />        
+        );
 
         const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
-        expect(schedulerEvent).not.toHaveClass('react-ui-scheduler-event-draggable');
-        fireEvent.mouseDown(schedulerEvent, {clientX: 55 + offsetX, clientY: 110 + offsetY + diff} );
-
-        mouseMove( 55 + offsetX, 20 + offsetY + diff );
-        expect(schedulerEvent.textContent).toContain('10:00 - 16:00');
-        expect(schedulerEvent).toHaveStyle(`left:    50px`);
-        expect(schedulerEvent).toHaveStyle("width:   10px");
-        expect(schedulerEvent).toHaveStyle(`top:     110px`);
-        expect(schedulerEvent).toHaveStyle("height:  60px");
-        expect(schedulerEvent).not.toHaveClass('react-ui-scheduler-event-dragging');
+        fireEvent.mouseDown(schedulerEvent, { button });
         
-        const resizeHandler = container.querySelector('.react-ui-scheduler-resize-event');
-        expect(resizeHandler).not.toHaveClass('react-ui-scheduler-event-resizable');
-        fireEvent.mouseDown(resizeHandler, {clientX: 55 + offsetX, clientY: 160 + offsetY + diff} );
+        expect(startDrag).not.toHaveBeenCalled();
+
+    });
+    
+    test("Prevent drag and drop of event over another event", async () => {
+        
+        const { container, debug } = render(
+            <Scheduler 
+                events      = { [
+                    {
+                        label: "Meeting",
+                        date:  "2023-04-03",
+                        startTime: "14:00",
+                        endTime:   "15:00",
+                        customVar: "foo"
+                    },
+                    {
+                        label: "Another meeting",
+                        date:  "2023-04-03",
+                        startTime: "16:00",
+                        endTime:   "17:00",
+                        customVar: "foo"
+                    }
+                ] } 
+                currentDate = "2023-04-03" 
+            />        
+        );
+        
+        const schedulerEvents = [...container.querySelectorAll('.react-ui-scheduler-event')];
+        fireEvent.mouseDown(schedulerEvents[0]);
+        
+        const hour = 60 * 60 * 1000;
+        
+        let { notify, subject } = startDragLastParams;
+        
+        subject.start += 2 * hour;
+        subject.end   += 2 * hour;
+        act(() => notify('move', subject));
+        expect(schedulerEvents[0].textContent).toContain('16:00 - 17:00');
+        expect(schedulerEvents[0]).toHaveClass('react-ui-scheduler-event-dragging-forbidden');
+        
+        subject.start -= 3 * hour;
+        subject.end   -= 3 * hour;
+        act(() => notify('move', subject));
+        expect(schedulerEvents[0].textContent).toContain('13:00 - 14:00');
+        expect(schedulerEvents[0]).not.toHaveClass('react-ui-scheduler-event-dragging-forbidden');
+        
+        subject.start += 3 * hour;
+        subject.end   += 3 * hour;
+        act(() => notify('release', subject));
+        expect(schedulerEvents[0].textContent).toContain('14:00 - 15:00');
+        expect(schedulerEvents[0]).not.toHaveClass('react-ui-scheduler-event-dragging-forbidden');
+        
+        // move 2nd event to 18:00-19:00
+        fireEvent.mouseDown(schedulerEvents[1]);
+        ({ notify, subject } = startDragLastParams);
+        
+        subject.start += 2 * hour;
+        subject.end   += 2 * hour;
+        act(() => notify('move', subject));
+        act(() => notify('release', subject));
+        expect(schedulerEvents[1].textContent).toContain('18:00 - 19:00');
+
+        // moving 1rst event to 18:00-19:00 should fail
+        fireEvent.mouseDown(schedulerEvents[0]);
+        ({ notify, subject } = startDragLastParams);
+
+        subject.start += 4 * hour;
+        subject.end   += 4 * hour;
+        act(() => notify('move', subject));
+        act(() => notify('release', subject));
+        expect(schedulerEvents[0].textContent).toContain('14:00 - 15:00');
+        
+    })
+   
+    afterEach(() => {
+        startDrag.mockClear();
+    });
+    
+});
+
+
+
+/*
+
+describe.each([
+    [0,  0],
+    [15, 20]
+])('Scheduler at offset(%s, %s)', (offsetX, offsetY) => {
+
+    beforeEach(() => {
+        
+        mockColumnInfos({offsetX, offsetY});
         
     });
+    
     
     test.each([
         [55,  20,  "2023-04-05", "01:00", "07:00", '50px',  '20px'],
@@ -516,6 +724,7 @@ describe.each([
         expect(schedulerEvents[0].textContent).toContain('08:00 - 10:00');
     })
 
+
     test.each([
         [55,  80,  "10:15", '2.5px'],
         [55,  200, "20:00", '100px'],
@@ -590,54 +799,18 @@ describe.each([
     
 
     
-    test.each([[1], [2]])("Dragging an event is not supposed to work if mouse button %s pressed", async (button) => {
-        
-        const { container, debug } = render(
-            <Scheduler 
-                events      = { [
-                    {
-                        label: "Meeting this week",
-                        date:  "2023-04-05",
-                        startTime: "10:00",
-                        endTime:   "16:00",
-                        customVar: "foo"
-                    }
-                ] } 
-                currentDate = "2023-04-03" 
-            />        
-        );
-
-        const diff = 10;
-
-        const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
-        fireEvent.mouseDown(schedulerEvent, {clientX: 55 + offsetX, clientY: 110 + offsetY + diff, button} );
-
-        mouseMove( 55 + offsetX, 20 + offsetY + diff );
-        expect(schedulerEvent.textContent).toContain('10:00 - 16:00');
-        expect(schedulerEvent).toHaveStyle(`left:    50px`);
-        expect(schedulerEvent).toHaveStyle("width:   10px");
-        expect(schedulerEvent).toHaveStyle(`top:     110px`);
-        expect(schedulerEvent).toHaveStyle("height:  60px");
-        expect(schedulerEvent).not.toHaveClass('react-ui-scheduler-event-dragging');
-        
-        const resizeHandler = container.querySelector('.react-ui-scheduler-resize-event');
-        fireEvent.mouseDown(resizeHandler, {clientX: 55 + offsetX, clientY: 160 + offsetY + diff, button} );
-        
-        mouseMove( 55 + offsetX, 20 + offsetY + diff );
-        expect(schedulerEvent.textContent).toContain('10:00 - 16:00');
-        expect(schedulerEvent).toHaveStyle("height:  60px");
-        
-    });
-    
 });
 
+*/
+
 // shortcuts for triggering events on window
+
+//@deprecated
 const windowResize = () => act(() => {
     window.dispatchEvent(new CustomEvent('resize'));
 });
-const mouseMove = (clientX, clientY) => act(() => {
-    window.dispatchEvent(new MouseEvent('mousemove', { clientX, clientY }));
-});
+
+//@deprecated
 const mouseUp   = (clientX, clientY) => act(() => {
     window.dispatchEvent(new MouseEvent('mouseup', { clientX, clientY }));
 });

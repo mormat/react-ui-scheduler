@@ -3,9 +3,9 @@
  * @jest-environment jsdom
  */
 
-import DomUtils from '../src/DomUtils';
+import { getColumnsLayout, startDrag } from '../src/dom-utils';
 
-test("Extract informations about HTML table element", () => {
+test("Get columns layout", () => {
     
     const root = document.createElement('div');
     root.innerHTML = `
@@ -22,25 +22,75 @@ test("Extract informations about HTML table element", () => {
     `;
     
     jest.spyOn(root, 'getBoundingClientRect').mockReturnValue(
-        { x: 20, y: 40, width: 600, height: 400 }
+        { left: 20, top: 40, width: 600, height: 400 }
     );
     
     const tbody   = root.querySelector('tbody');
     jest.spyOn(tbody, 'getBoundingClientRect').mockReturnValue(
-        { x: 30, y: 80, width: 400, height: 340 }    
+        { left: 30, top: 80, width: 400, height: 340 }    
     );
     
     const headers = [...root.querySelectorAll('thead th')];
     jest.spyOn(headers[0], 'getBoundingClientRect').mockReturnValue(
-        { x: 200, y: 60, width: 120, height: 50 }    
+        { left: 200, top: 60, width: 120, height: 50 }    
     );
     jest.spyOn(headers[1], 'getBoundingClientRect').mockReturnValue(
-        { x: 320, y: 60, width: 130, height: 50 }    
+        { left: 320, top: 60, width: 130, height: 50 }    
     );
     
-    expect(DomUtils.getHtmlTableColumnsInfos(root)).toStrictEqual([
-        { x: 200, y: 80, width: 120, height: 340, offsetX: 20, offsetY: 40 },
-        { x: 320, y: 80, width: 130, height: 340, offsetX: 20, offsetY: 40 },
-    ]);
+    const layout = getColumnsLayout(root);
+    
+    expect(layout).toStrictEqual({
+        left: 20, top: 40, width: 600, height: 400,
+        children: [
+            { left: 180, top: 40, width: 120, height: 340 },
+            { left: 300, top: 40, width: 130, height: 340 }
+        ]
+    });
+});
+
+test("Start drag and drop", () => {
+    
+    const dragHandler = {
+        press:   jest.fn(),
+        move:    jest.fn(),
+        release: jest.fn(),
+    };
+    
+    const mousedown = new MouseEvent('mousedown');
+    const mousemove = new MouseEvent('mousemove');
+    const mouseup   = new MouseEvent('mouseup');
+    
+    let subject = { start: 10, end: 20 };
+    
+    startDrag(dragHandler, subject, mousedown);
+    expect(dragHandler.press).toBeCalledWith(subject, mousedown);
+    
+    window.dispatchEvent(mousemove);
+    expect(dragHandler.move).toBeCalledWith(subject, mousemove);
+    
+    window.dispatchEvent(mouseup);
+    expect(dragHandler.release).toBeCalledWith(subject, mouseup);
+    
+    // When pressed button has been released, moving and release events are ignored 
+    window.dispatchEvent(mousemove);
+    expect(dragHandler.move).toHaveBeenCalledTimes(1);
+    
+    window.dispatchEvent(mouseup);
+    expect(dragHandler.release).toHaveBeenCalledTimes(1);
+    
+    // checks that notify callback was called
+    const notify = jest.fn();
+    
+    startDrag(dragHandler, subject, mousedown, notify );
+    expect(notify).toHaveBeenLastCalledWith('press', subject, mousedown);
+    
+    window.dispatchEvent(mousemove);
+    expect(notify).toHaveBeenLastCalledWith('move', subject, mousemove);
+    
+    window.dispatchEvent(mouseup);
+    expect(notify).toHaveBeenLastCalledWith('release', subject, mouseup);
+    
+    
     
 });

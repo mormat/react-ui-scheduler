@@ -3,7 +3,13 @@ import { createRef, useEffect, useState } from 'react';
 
 import SchedulerEvent   from './SchedulerEvent';
 
-import DomUtils from './DomUtils';
+import { getColumnsLayout } from './dom-utils';
+
+import { getDaysOfWeek } from './date-utils';
+
+import { Column, ColumnCollection, MagneticGridDecorator } from './areas';
+
+import { createDragHandler } from './drag-handlers';
 
 const defaults = {
     events:  [],
@@ -12,6 +18,8 @@ const defaults = {
     locale:  'en',
     draggable: true,
 }
+
+
 
 function Scheduler( props ) {
     
@@ -26,10 +34,15 @@ function Scheduler( props ) {
         draggable 
     } = {...defaults, ...props}
     
-    const [columns, setColumns] = useState([]);
     const parentRef             = createRef();
+    const [area,  setArea]      = useState();
+    const [dragHandler, setDragHandler] = useState({});
+    const [columnsLayout, setColumnsLayout] = useState({});
     
-    const days   = getDays(currentDate, minHour,  maxHour);
+    const days   = getDaysOfWeek(currentDate).map(day => ({
+        min: new Date(day + ' ' + minHour + ':00').getTime(), 
+        max: new Date(day + ' ' + maxHour + ':00').getTime()
+    }));
     const hours  = getVerticalAxisLabels(minHour, maxHour, 60);
     
     const start  = Math.min(...days.map(t => t.min));
@@ -61,17 +74,32 @@ function Scheduler( props ) {
         
         const resize = () => {
             
-            const columns = DomUtils.getHtmlTableColumnsInfos(parentElement);
+            const columnsLayout = getColumnsLayout(parentElement);
             
-            setColumns(columns.map( (column, index) => {
-                
-                const min = days[index].min;
-                const max = days[index].max;
-
-                return { ...column, data: { min, max } }
-                
-            }));
-
+            const constraints = (days.map(({min, max}) => ({min, max})));
+            columnsLayout.children.forEach((v,k) => {
+                v.data = constraints[k]
+            })
+            
+            setColumnsLayout(columnsLayout);
+            
+            let area = new ColumnCollection(
+                columnsLayout.children.map(function({left, top, width, height}, index) {
+                    return new Column({x: left + columnsLayout.left, y: top + columnsLayout.top, width, height}, constraints[index]);
+                })        
+            );
+    
+            area = new MagneticGridDecorator(area, 15 * 60 * 1000);
+    
+            const dragHandler = createDragHandler({
+                minLength: 15 * 60 * 1000,
+                area, constraints
+            });
+    
+            setDragHandler(dragHandler);
+            
+            setArea(area);
+            
         }
         
         resize();
@@ -81,6 +109,8 @@ function Scheduler( props ) {
         return () => {
             window.removeEventListener('resize', resize);
         }
+        
+        
         
     }, []);
     
@@ -135,10 +165,10 @@ function Scheduler( props ) {
                 </tbody>
             </table>
         
-            { columns.map( ( {x, y, width, height, offsetX, offsetY}, index) => (
+            { (columnsLayout.children || []) .map( ( {left, top, width, height}, index) => (
                 <div key = { index } 
                      className = "react-ui-scheduler-column"
-                     style = { { position: "absolute", left: x - offsetX, top: y - offsetY, width, height } }
+                     style = { { position: "absolute", left, top, width, height } }
                 >
             
                 </div>
@@ -148,13 +178,18 @@ function Scheduler( props ) {
                 <div key = { index }>
                     <SchedulerEvent 
                         value   = { event } 
-                        columns = { columns } 
                         onDrop  = { (values) => handleEventDrop(values, event) }
                         draggable = { draggable }
                         events    = { cleanedEvents }
+                        dragHandler = { dragHandler }
+                        columnsLayout = { columnsLayout }
                     />
                 </div>
             )) }
+    
+            { /*
+            <Debug area= { area } />
+             */ }
     
         </div>
                 
@@ -166,7 +201,7 @@ const formatDateOptions = {
     weekday: 'short', 
     year:    'numeric', 
     month:   'long', 
-    day:     'numeric' 
+    day:     'numeric',
 }
 
 const cleanEvent = (event) => {
@@ -177,29 +212,6 @@ const cleanEvent = (event) => {
         end:   new Date(date + " " + endTime).getTime(),
         ...otherValues
     }
-}
-
-const getDays = (currentDate, minHour, maxHour) => {
-    const days    = [];
-    
-    const date   = new Date(currentDate || Date.now());
-    let   monday = date.getDate() - date.getDay();
-    
-    // adjust when day is sunday
-    if (date.getDay() === 0) {
-        monday -= 7;
-    }
-    
-    for (let i = 1; i <= 7; i++) {
-        date.setDate(monday + i);
-    
-        const key   = date.toISOString().substring(0, 10);
-        const min = new Date(key + ' ' + minHour + ':00').getTime();
-        const max = new Date(key + ' ' + maxHour + ':00').getTime();
-        
-        days.push({ key, min, max });
-    }
-    return days;
 }
 
 const getVerticalAxisLabels = (minHour, maxHour, minutesGap = 60) => {
@@ -215,6 +227,39 @@ const getVerticalAxisLabels = (minHour, maxHour, minutesGap = 60) => {
     }
 
     return labels
+}
+
+function Debug( { area } )
+{
+    const [label, setLabel] = useState('waiting ...');
+    
+    
+    useEffect(() => {
+
+        const n = Math.floor(Math.random() * 100);
+
+        const mousemove = function(e) {
+            let label = '???';
+            if (area) {
+                const val = area.getValueAtCoord(e);
+                label = new Date(val).toLocaleString('fr', formatDateOptions + {
+                    hour:    'numeric',
+                    minute:  'numeric',
+                });
+            }
+            setLabel(label);
+        }
+        window.addEventListener('mousemove', mousemove);
+         
+        return () => {
+            window.removeEventListener('mousemove', mousemove);
+        }
+         
+    }, [area]);
+    
+    return (
+        <h4>{ label }</h4>
+    );
 }
 
 export default Scheduler
