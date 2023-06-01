@@ -20,4 +20,22 @@ const getDaysOfWeek = (current?:any): string[] => {
 
 }
 
-export { getDaysOfWeek }
+function getHoursBetween(minHour: number, maxHour: number, minutesGap: number = 60): string[] {
+
+    const results: string[] = [];
+
+    let minutes = minHour * 60;
+    while (minutes <= maxHour * 60) {
+        results.push(
+            new String(minutes / 60).padStart(2, '0') + 
+            ':' +
+            new String(minutes % 60).padStart(2, '0')
+        )
+        minutes += minutesGap;
+    }
+
+    return results;
+
+}
+
+export { getDaysOfWeek, getHoursBetween }

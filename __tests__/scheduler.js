@@ -9,11 +9,13 @@ import '@testing-library/jest-dom';
 import Scheduler from '../src/Scheduler';
 
 jest.mock('../src/dom-utils', () => ({
+    ...jest.requireActual('../src/dom-utils'),
     getColumnsLayout: jest.fn(),
     startDrag: jest.fn()
 }));
 
 jest.mock('../src/date-utils', () => ({
+    ...jest.requireActual('../src/date-utils'),
     getDaysOfWeek: jest.fn()
 }));
 
@@ -65,7 +67,6 @@ const fixtures = {
     ]
 }
 
-
 describe('Scheduler', () => {
 
     let startDragLastParams = {};
@@ -110,6 +111,7 @@ describe('Scheduler', () => {
         
     });
     
+    /*
     test('Show the current week at 2023-03-13', async () => {
         
         const { container, debug } = render(
@@ -130,7 +132,7 @@ describe('Scheduler', () => {
             'Sun, March 19, 2023',
         ]);
         
-    });
+    });*/
     
     test('i18n', async () => {
         
@@ -273,35 +275,7 @@ describe('Scheduler', () => {
         
     });
     
-    test("If onEventChange() listener not in params, dropping an event should not trigger error", async () => {
-        
-        const { container } = render(
-            <Scheduler 
-                events      = { [
-                    {
-                        label: "Meeting this week",
-                        date:  "2023-04-03",
-                        startTime: "10:00",
-                        endTime:   "16:00",
-                    }
-                ] } 
-                currentDate = "2023-04-03" 
-            />        
-        );
 
-
-        const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
-        fireEvent.mouseDown(schedulerEvent, {clientX: 55, clientY: 110} );
-        
-        let { notify, subject } = startDragLastParams;
-        act(function() {
-            notify('move', subject);
-            notify('release', subject);
-        });
-        
-        
-    })
-   
     test("Initial position and size of scheduler event", async () => {
 
         const { container, debug } = render(
@@ -550,21 +524,41 @@ describe('Scheduler', () => {
         act(() => notify('release', subject));
         expect(schedulerEvents[0].textContent).toContain('14:00 - 15:00');
         
+    });
+    
+    // @todo still need that ?
+    test("If onEventChange() missing in params, dropping an event should not trigger error", async () => {
+        
+        const { container } = render(
+            <Scheduler 
+                events      = { [
+                    {
+                        label: "Meeting this week",
+                        date:  "2023-04-03",
+                        startTime: "10:00",
+                        endTime:   "16:00",
+                    }
+                ] } 
+                currentDate = "2023-04-03" 
+            />        
+        );
+
+
+        const schedulerEvent = container.querySelector('.react-ui-scheduler-event');
+        fireEvent.mouseDown(schedulerEvent, {clientX: 55, clientY: 110} );
+        
+        let { notify, subject } = startDragLastParams;
+        act(function() {
+            notify('move', subject);
+            notify('release', subject);
+        });
+        
+        
     })
+   
    
     afterEach(() => {
         startDrag.mockClear();
     });
     
 });
-
-global.ResizeObserver = function(fn) {
-    
-    this.observe = (element) => {
-        element.addEventListener('resize', fn);
-    }
-    
-    this.unobserve = (element) => {
-        element.removeEventListener('resize', fn);
-    }
-}

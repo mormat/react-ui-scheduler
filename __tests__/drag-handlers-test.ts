@@ -1,144 +1,157 @@
-import { MoveEventDragHandler, ResizeEventDragHandler, StrategyDispatcherDragHandler  } from '../src/drag-handlers';
+import { JSDOM } from 'jsdom'
+
+import { MoveEventDragHandler, ResizeEventDragHandler, DispatchableDragHandler  } from '../src/drag-handlers';
 import { DragHandlerOptions } from '../src/drag-handlers';
-import { Coordinate } from '../src/areas'
+import { ILayout, ICoordinate } from '../src/types';
 
+describe("DragHandler using columnsLayout", () => {
 
-const areaMock = {
-    getValueAtCoord: (pos: Coordinate) => pos.clientX * 100 + pos.clientY
-}
+    const { document } = new JSDOM(`
+        <body>
+            <div id="columnsLayout">
+                <div id="column1"
+                    data-datemin="1970-01-01 05:00"
+                    data-datemax="1970-01-01 10:00"
+                ></div>
+                <div id="column2"
+                    data-datemin="1970-01-01 15:00"
+                    data-datemax="1970-01-01 20:00"
+                ></div>
+            <div>
+        </body>
+    `).window;
 
-
-describe("MoveEventDragHandler", () => {
-
-    test("Supports any subject", () => {
-
-        const handler = new MoveEventDragHandler(areaMock);
-
-        const subject = { min: 2, max: 3}
-
-        expect(handler.supports(subject)).toBe(true);
-
-    })
+    const columnsLayout: ILayout = {
+        element: document.getElementById('columnsLayout')!,
+        children: [
+            {
+                element: document.getElementById('column1')!,
+                children: [],
+                getValueAtCoord: () => {}
+            },
+            {
+                element: document.getElementById('column2')!,
+                children: [],
+                getValueAtCoord: () => {}
+            },
+        ],
+        getValueAtCoord: ({clientX, clientY}: ICoordinate) => {
+            return new Date(`1970-01-01 ${clientX}:${clientY}`);
+        }
+    }
 
     test.each([
-        [0, 11, 10,  15],
-        [1, 0,  100, 105, {'constraints' : [{min: 100, max: 200}]}],
-        [1, 99, 195, 200, {'constraints' : [{min: 100, max: 200}]}]
-    ])("Event dragged to (%s,%s) should be updated with {start: %s, end: %s} %s", 
-        (newClientX, newClientY, expectedStart, expectedEnd, options: DragHandlerOptions = {}) => {
+        [7,  30, '07:00', '08:00'],
+        [5,   0, '05:00', '06:00'],
+        [19, 59, '19:00', '20:00'],
+    ])("MoveEventDragHandler - dragging to (%s,%s) should update event with {start: %s, end: %s}", 
+        (clientX, clientY, startHour, endHour) => {
 
-        const handler = new MoveEventDragHandler(areaMock);
-        for (const [key, value] of Object.entries(options)) {
-            (handler as any)[key] = value;
-        }
+        const handler = new MoveEventDragHandler(columnsLayout);
 
-        const subject = { start: 5, end: 10};
+        const subject = { 
+            start: new Date("1970-01-01 08:00"), 
+            end:   new Date("1970-01-01 09:00")
+        };
 
-        handler.press(subject, {clientX: 0, clientY: 6});
+        handler.press({clientX: 8, clientY: 30}, subject);
 
-        handler.move(subject,  {clientX: newClientX, clientY: newClientY});
+        handler.move({clientX, clientY}, subject);
 
-        expect(subject).toStrictEqual({start: expectedStart, end: expectedEnd});
-    })
+        expect(subject).toStrictEqual({
+            start: new Date("1970-01-01 " + startHour), 
+            end:   new Date("1970-01-01 " + endHour)
+        });
 
-});
-
-describe("ResizeEventDragHandler", () => {
-    
-    test("Supports any subject", () => {
-
-        const handler = new ResizeEventDragHandler(areaMock);
-
-        const subject = { min: 2, max: 3 }
-
-        expect(handler.supports(subject)).toBe(true);
-
-    })
+    });
 
     test.each([
-        [0, 19, 20],
-        [0, 3,  6],
-        [0, 3,  10, {'minLength' : 5}],
-        [0, 22, 20, {'constraints' : [{min: 0, max: 20}]}],
-    ])("Event dragged at (%s, %s) should be ending at %s %s", 
-        (newClientX, newClientY, expectedEnd, options: DragHandlerOptions = {}) => {
+        [8, 50, '09:00'],
+        [5,  1, '06:05'],
+        [11, 0, '10:00'],
+        [16, 0, '10:00']
+    ])("ResizeEventDragHandler - dragging to (%s, %s) should update event with {start: 06:00 , end: %s}", 
+        (clientX, clientY, endHour) => {
 
-        const handler = new ResizeEventDragHandler(areaMock);
-        for (const [key, value] of Object.entries(options)) {
-            (handler as any)[key] = value;
-        }
-
-        const subject = { start: 5, end: 10};
+        const handler = new ResizeEventDragHandler(columnsLayout, 5 * 60 * 1000);
         
-        handler.press(subject, {clientX: 0, clientY: 9});
+        const subject = { 
+            start: new Date("1970-01-01 06:00"), 
+            end:   new Date("1970-01-01 08:00")
+        };
+        
+        handler.press({clientX: 7, clientY: 50}, subject);
 
-        handler.move(subject,  {clientX: newClientX, clientY: newClientY});
+        handler.move({clientX, clientY}, subject);
 
-        expect(subject).toStrictEqual({start: 5, end: expectedEnd})
+        expect(subject).toStrictEqual({
+            start: new Date("1970-01-01 06:00"),
+            end:   new Date("1970-01-01 " + endHour)
+        })
 
     })
 
 });
 
-describe('StrategyDispatcherDragHandler', () => {
+describe('DispatchableDragHandler', () => {
 
     test.each([
-        ['foo', 'bar'],
-        ['bar', 'foo'],
-    ])('Strategy "%s" should be triggered and not "%s"', 
-        (expectedTriggeredStrategy, expectedIgnoredStrategy) => {
+        ['foo', 1, 0],
+        ['bar', 0, 1],
+    ])('DispatchableDragHandler with action="%s" should call "foo" %s times and "bar" %s times', 
+        (action, nbrFooCalls, nbrBarCalls) => {
 
-        const handler = new StrategyDispatcherDragHandler();
+        const dispatchableDragHandler = new DispatchableDragHandler();
 
-        const strategies: { [key: string]: any; } = {}
-        for (let name of ['foo', 'bar']) {
-            strategies[name] = buildDragHandlerMock();
-            handler.setStrategy(name, strategies[name]);
+        const otherDragHandlers: Dictionary<any> = {
+            'foo': buildDragHandlerMock(),
+            'bar': buildDragHandlerMock()
         }
 
-        const subject = { strategy: expectedTriggeredStrategy, start: 0, end: 100 }
-        const coord   = { clientX: 0, clientY: 0 }
+        const subject = {};
+        const coord   = { clientX: Math.random(), clientY: Math.random() }
+        const data    = { action }
 
-        handler.supports(subject);
-        expect(strategies[expectedTriggeredStrategy].supports).toBeCalledWith(subject);
-        expect(strategies[expectedIgnoredStrategy].supports).not.toHaveBeenCalled();
+        for (let [key, dragHandler] of Object.entries(otherDragHandlers)) {
+            const dispatcher = (args: any) => {
+                const conditions = new Set([
+                    args.subject === subject,
+                    args.coord   === coord,
+                    args.action  === key,
+                ]);
 
-        handler.press(subject, coord);
-        expect(strategies[expectedTriggeredStrategy].press).toBeCalledWith(subject, coord);
-        expect(strategies[expectedIgnoredStrategy].press).not.toHaveBeenCalled();
+                return !conditions.has(false);
+            }
 
-        handler.move(subject, coord);
-        expect(strategies[expectedTriggeredStrategy].move).toBeCalledWith(subject, coord);
-        expect(strategies[expectedIgnoredStrategy].move).not.toHaveBeenCalled();
+            dispatchableDragHandler.push(dragHandler, dispatcher);
+        }
+        
+        dispatchableDragHandler.press(coord, subject, data);
+        expect(otherDragHandlers['foo'].press).toHaveBeenCalledTimes(nbrFooCalls);
+        expect(otherDragHandlers['bar'].press).toHaveBeenCalledTimes(nbrBarCalls);
+        expect(otherDragHandlers[action].press).toHaveBeenLastCalledWith(coord, subject, data);
 
-        handler.release(subject, coord);
-        expect(strategies[expectedTriggeredStrategy].release).toBeCalledWith(subject, coord);
-        expect(strategies[expectedIgnoredStrategy].release).not.toHaveBeenCalled();
+        dispatchableDragHandler.move(coord, subject, data);
+        expect(otherDragHandlers['foo'].move).toHaveBeenCalledTimes(nbrFooCalls);
+        expect(otherDragHandlers['bar'].move).toHaveBeenCalledTimes(nbrBarCalls);
+        expect(otherDragHandlers[action].move).toHaveBeenLastCalledWith(coord, subject, data);
+
+        dispatchableDragHandler.release(coord, subject, data);
+        expect(otherDragHandlers['foo'].release).toHaveBeenCalledTimes(nbrFooCalls);
+        expect(otherDragHandlers['bar'].release).toHaveBeenCalledTimes(nbrBarCalls);
+        expect(otherDragHandlers[action].release).toHaveBeenLastCalledWith(coord, subject, data);
+
     })
 
-    test("Expecting no errors if strategy is unknown", () => {
-
-        const handler = new StrategyDispatcherDragHandler();
-
-        const subject = { start: 0, end: 100 }
-        const coord   = { clientX: 0, clientY: 0 }
-
-        expect(handler.supports(subject)).toBe(false);
-        handler.press(subject, coord);
-        handler.move(subject, coord);
-
-    })
-
-})
-
+});
 
 const buildDragHandlerMock = (props = {}) => {
 
     return {
         supports: jest.fn(function(subject: any) { return true }),
-        press:    jest.fn(function(subject: any, coord: Coordinate) {}),
-        move:     jest.fn(function(subject: any, coord: Coordinate) {}),
-        release:  jest.fn(function(subject: any, coord: Coordinate) {}),
+        press:    jest.fn(function(subject: any, coord: ICoordinate) {}),
+        move:     jest.fn(function(subject: any, coord: ICoordinate) {}),
+        release:  jest.fn(function(subject: any, coord: ICoordinate) {}),
         ...props
     }
 

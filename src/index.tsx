@@ -3,19 +3,17 @@ import ReactDOM      from 'react-dom'
 
 import Scheduler     from './Scheduler';
 
+import { SchedulerConfig } from './types';
+
 window.scheduler = {
     
-    bind: (selector, {events = [], minHour, maxHour} = {}) => {
+    bind: (selector: string, config: SchedulerConfig = {}) => {
         
         // const element = ;
         
         ReactDOM.render(
             <React.StrictMode>
-                <Scheduler events  = { events  } 
-                           minHour = { minHour } 
-                           maxHour = { maxHour }
-                           draggable = { true }
-                />
+                <Scheduler { ...config } />
             </React.StrictMode>,
             document.querySelector(selector)
         );

@@ -26,40 +26,47 @@
       </div>
       <script>
           
-          var date  = new Date(Date.now());
-          var diff  = date.getDate() - date.getDay() + (date.getDay() == 0 ? -6:1);
-          var start = new Date( date.setDate(diff) ).getTime();
-          var interval = 24 * 60 * 60 * 1000;
+          console.log('window.location.search', window.location.search);
           
-          scheduler.bind('#root', {
-            minHour: "08:00",
-            maxHour: "20:00",
-            events: [
-                {
-                    label: "Conference",
-                    date: new Date(start + interval).toISOString().substring(0, 10),
-                    startTime: "14:00",
-                    endTime:   "18:00",
-                    color: "white",
-                    backgroundColor: "rgb(2, 136, 209)"
-                },
-                {
-                    label: "Meeting",
-                    date:  new Date(start + 3 * interval).toISOString().substring(0, 10),
-                    startTime: "10:00",
-                    endTime:   "18:00",
-                    color: "white",
-                    backgroundColor: "#9575cd"
-                },
-                {
-                    label: "Exhibition",
-                    date:  new Date(start + 5 * interval).toISOString().substring(0, 10),
-                    startTime: "10:00",
-                    endTime:   "16:00",
-                    color: "white",
-                    backgroundColor: "#0fc4a7"
-                }
-          ]});
+          if (window.location.search !== '?cucumber') {
+              
+                var date  = new Date(Date.now());
+                var diff  = date.getDate() - date.getDay() + (date.getDay() == 0 ? -6:1);
+                var start = new Date( date.setDate(diff) ).getTime();
+                var interval = 24 * 60 * 60 * 1000;
+
+                scheduler.bind('#root', {
+                  minHour: 8,
+                  maxHour: 20,
+                  events: [
+                      {
+                          label: "Conference",
+                          date: new Date(start + interval).toISOString().substring(0, 10),
+                          startTime: "14:00",
+                          endTime:   "18:00",
+                          color: "white",
+                          backgroundColor: "rgb(2, 136, 209)"
+                      },
+                      {
+                          label: "Meeting",
+                          date:  new Date(start + 3 * interval).toISOString().substring(0, 10),
+                          startTime: "10:00",
+                          endTime:   "18:00",
+                          color: "white",
+                          backgroundColor: "#9575cd"
+                      },
+                      {
+                          label: "Exhibition",
+                          date:  new Date(start + 5 * interval).toISOString().substring(0, 10),
+                          startTime: "10:00",
+                          endTime:   "16:00",
+                          color: "white",
+                          backgroundColor: "#0fc4a7"
+                      }
+                ]});
+          }
+          
+          
       </script>
   </body>
 </html>

@@ -10,11 +10,8 @@
 }
 
 .react-ui-scheduler-table tbody td {
-    border-bottom: 1px solid lightgray;
-}
-
-.react-ui-scheduler-table tbody tr:first-child td {
-    border-top: 1px solid lightgray;
+    border: 1px solid lightgray;
+    border-left: none;
 }
 
 .react-ui-scheduler-table tbody th {
@@ -35,7 +32,7 @@
     cursor: move;
 }
 
-.react-ui-scheduler-event-dragging {
+.react-ui-scheduler-event-moving {
     opacity: 0.7;
     z-index: 20;
 }

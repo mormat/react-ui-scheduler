@@ -1,43 +1,24 @@
 
-import { Area, Coordinate, Range } from './areas'
-
-interface DragHandler<K>  {
-    supports(subject: K): boolean
-
-    press(subject: K, coord: Coordinate): void
-
-    move(subject: K, coord: Coordinate): void
-
-    release(subject: K, coord: Coordinate): void
-}
+import { ILayout, IDragHandler, ICoordinate} from './types';
 
 interface DragHandlerOptions {
     minLength?: number;
     constraints?: Range[];
 }
 
-class MoveEventDragHandler implements DragHandler<any> {
+class MoveEventDragHandler implements IDragHandler<any> {
     
-    private _area: Area;
-    private _constraints: Range[] = [];
+    private _columnsLayout: ILayout;
     private _data: Map<any,Dictionary>;
 
-    constructor(area: Area) {
-        this._area = area;
+    constructor(columnsLayout: ILayout) {
+        this._columnsLayout = columnsLayout;
         this._data = new Map<any,Dictionary>();
     }
 
-    set constraints(val: Range[]) {
-        this._constraints = val;
-    }
-
-    public supports(subject: any) {
-        return true;
-    }
-
-    public press(subject: any, coord: Coordinate) {
+    public press(coord: ICoordinate, subject: any) {
     
-        const value = this._area.getValueAtCoord(coord);
+        const value = this._columnsLayout.getValueAtCoord(coord);
 
         this._data.set(subject, {
             diff:   value ? value - subject.start: 0,
@@ -46,59 +27,51 @@ class MoveEventDragHandler implements DragHandler<any> {
         
     }
 
-    public move(subject: any, coord: Coordinate) {
+    public move(coord: ICoordinate, subject: any) {
 
-        const value = this._area.getValueAtCoord(coord);
-        
+        const value = this._columnsLayout.getValueAtCoord(coord);
+
         const data  = this._data.get(subject);
 
         if (data && value) {
-
             let start = value - data.diff;
 
-            for (let constraint of this._constraints) {
-                if (constraint.min <= value && value <= constraint.max) {
-                    start = Math.max(start, constraint.min);
-                    start = Math.min(start, constraint.max - data.length);
+            for (let { element } of this._columnsLayout.children) {
+
+                const datemin = new Date(element.getAttribute('data-datemin')!);
+                const datemax = new Date(element.getAttribute('data-datemax')!);
+
+                if (datemin <= value && value <= datemax) {
+                    start = Math.max(start, datemin.getTime());
+                    start = Math.min(start, datemax.getTime() - data.length);
                 }
+
             }
 
-            subject.start = start;
-            subject.end   = subject.start + data.length;
+            subject.start = new Date(start);
+            subject.end   = new Date(start + data.length);
         }
     }
 
-    public release(subject: any, coord: Coordinate) {}
+    public release(coord: ICoordinate, subject: any) {}
 
 }
 
-class ResizeEventDragHandler implements DragHandler<any> {
+class ResizeEventDragHandler implements IDragHandler<any> {
 
-    private _area: Area;
-    private _constraints: Range[] = [];
+    private _columnsLayout: ILayout;
     private _minLength: number = 1;   
     private _data: Map<any,Dictionary>;
 
-    constructor(area: Area) {
-        this._area = area;
+    constructor(columnsLayout: ILayout, minLength: number = 1) {
+        this._columnsLayout = columnsLayout;
+        this._minLength = minLength;
         this._data = new Map<any,Dictionary>();
     }
 
-    set minLength(val: number) {
-        this._minLength = val;
-    }
+    public press(coord: ICoordinate, subject: any) {
 
-    set constraints(val: Range[]) {
-        this._constraints = val;
-    }
-
-    public supports(subject: any) {
-        return true;
-    }
-
-    public press(subject: any, coord: Coordinate) {
-
-        const value = this._area.getValueAtCoord(coord);
+        const value = this._columnsLayout.getValueAtCoord(coord);
 
         this._data.set(subject, {
             diff: value ? value - subject.end: 0,
@@ -106,9 +79,9 @@ class ResizeEventDragHandler implements DragHandler<any> {
 
     }
 
-    public move(subject: any, coord: Coordinate) {
+    public move(coord: ICoordinate, subject: any) {
 
-        const value = this._area.getValueAtCoord(coord);
+        const value = this._columnsLayout.getValueAtCoord(coord);
         
         const data  = this._data.get(subject);
 
@@ -116,76 +89,109 @@ class ResizeEventDragHandler implements DragHandler<any> {
 
             let end = value - data.diff;
 
-            end = Math.max(end, subject.start + this._minLength);
+            end = Math.max(end, subject.start.getTime() + this._minLength);
 
-            for (let constraint of this._constraints) {
-                if (constraint.min <= subject.start && subject.start <= constraint.max) {
-                    end = Math.min(end, constraint.max);
+            for (let { element } of this._columnsLayout.children) {
+
+                const datemin = new Date(element.getAttribute('data-datemin')!);
+                const datemax = new Date(element.getAttribute('data-datemax')!);
+
+                if (datemin <= subject.start && subject.start <= datemax) {
+                    end = Math.min(end, datemax.getTime());
                 }
+
             }
 
-            subject.end = end;
+            subject.end = new Date(end);
 
         }
 
     }
 
-    public release(subject: any, coord: Coordinate) {}
+    public release(coord: ICoordinate, subject: any) {}
 }
 
-class StrategyDispatcherDragHandler implements DragHandler<any> {
+class DispatchableDragHandler implements IDragHandler<any> {
 
-    protected _strategies: Dictionary<any> = {}
+    protected _items: any[] = [];
 
-    setStrategy(name: string, instance: DragHandler<any>) {
-        this._strategies[name] = instance;
+    // @todo how to type a function ?
+    public push(dragHandler: IDragHandler<any>, dispatcher: any)
+    {
+        this._items.push({dragHandler, dispatcher})
     }
 
-    public supports(subject: any) {
-        if (subject.strategy in this._strategies) {
-            return this._strategies[subject.strategy].supports(subject);
-        }
-        return false;
-    }
-
-    public press(subject: any, coord: Coordinate) {
-        if (subject.strategy in this._strategies) {
-            this._strategies[subject.strategy].press(subject, coord);
+    protected _triggerDragHandler(method: string, coord: ICoordinate, subject: any, data: any) {
+        for (let {dragHandler, dispatcher} of this._items) {    
+            if (dispatcher({ subject, coord, ...data})) {
+                dragHandler[method](coord, subject, data);
+            }
         }
     }
 
-    public move(subject: any, coord: Coordinate) {
-        if (subject.strategy in this._strategies) {
-            this._strategies[subject.strategy].move(subject, coord);
+    public press(coord: ICoordinate, subject: any, data: any) {
+        this._triggerDragHandler('press', coord, subject, data);
+    }
+
+    public move(coord: ICoordinate, subject: any, data: any) {
+        this._triggerDragHandler('move', coord, subject, data);
+    }
+
+    public release(coord: ICoordinate, subject: any, data: any) {
+        this._triggerDragHandler('release', coord, subject, data);
+    }
+
+}
+
+// @todo missing test
+class ListenableDragHandler implements IDragHandler<any> {
+
+    protected _dragHandler: IDragHandler<any>;
+
+    constructor(dragHandler: IDragHandler<any>) {
+        this._dragHandler = dragHandler;
+    }
+
+    public press(coord: ICoordinate, subject: any, data: any) {
+        this._dragHandler.press(coord, subject, data);
+        if ('listener' in data) {
+            data['listener']('press', this)
         }
     }
 
-    public release(subject: any, coord: Coordinate) {
-        if (subject.strategy in this._strategies) {
-            this._strategies[subject.strategy].release(subject, coord);
+    public move(coord: ICoordinate, subject: any, data: any) {
+        this._dragHandler.move(coord, subject, data);
+        if ('listener' in data) {
+            data['listener']('move', this)
         }
     }
+
+    public release(coord: ICoordinate, subject: any, data: any) {
+        this._dragHandler.release(coord, subject, data);
+        if ('listener' in data) {
+            data['listener']('release', this)
+        }
+    }
+
 }
 
 // @todo missing test ?
-function createDragHandler(options: Dictionary<any> = {}): DragHandler<any>
+function createDragHandler(options: Dictionary<any> = {}): IDragHandler<any>
 {
-    const { area, constraints, minLength } = options;
+    const { columnsLayout, minLength = 1} = options;
 
-    const moveEventDragHandler = new MoveEventDragHandler(area);
-    moveEventDragHandler.constraints = constraints;
+    const moveEventDragHandler = new MoveEventDragHandler(columnsLayout);
 
-    const resizeEventDragHandler = new ResizeEventDragHandler(area);
-    resizeEventDragHandler.constraints = constraints;
-    resizeEventDragHandler.minLength = minLength;
+    const resizeEventDragHandler = new ResizeEventDragHandler(columnsLayout, minLength);
     
-    let dragHandler = new StrategyDispatcherDragHandler();
-    dragHandler.setStrategy('move',   moveEventDragHandler);
-    dragHandler.setStrategy('resize', resizeEventDragHandler);
-
-    return dragHandler;
+    let dragHandler = new DispatchableDragHandler();
+    dragHandler.push(moveEventDragHandler,   ({ behavior }: any) => behavior === 'moving');
+    dragHandler.push(resizeEventDragHandler, ({ behavior }: any) => behavior === 'resizing');
+    
+    return new ListenableDragHandler(dragHandler);
 }
 
+
 export { createDragHandler }
-export { MoveEventDragHandler, ResizeEventDragHandler, StrategyDispatcherDragHandler }
-export type {DragHandler, DragHandlerOptions}
+export { MoveEventDragHandler, ResizeEventDragHandler, DispatchableDragHandler }
+export type {IDragHandler, DragHandlerOptions}
