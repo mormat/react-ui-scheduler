@@ -7,7 +7,7 @@ import { getColumnsLayout } from './dom-utils';
 
 import { getDaysOfWeek } from './date-utils';
 
-import { Column, ColumnCollection, MagneticGridDecorator } from './areas';
+import { Column, ColumnCollection, MagneticGridDecorator, OffsetRelativeDragHandlerDecorator } from './areas';
 
 import { createDragHandler } from './drag-handlers';
 
@@ -18,8 +18,6 @@ const defaults = {
     locale:  'en',
     draggable: true,
 }
-
-
 
 function Scheduler( props ) {
     
@@ -85,11 +83,12 @@ function Scheduler( props ) {
             
             let area = new ColumnCollection(
                 columnsLayout.children.map(function({left, top, width, height}, index) {
-                    return new Column({x: left + columnsLayout.left, y: top + columnsLayout.top, width, height}, constraints[index]);
+                    return new Column({x: left, y: top, width, height}, constraints[index]);
                 })        
             );
     
             area = new MagneticGridDecorator(area, 15 * 60 * 1000);
+            area = new OffsetRelativeDragHandlerDecorator(area, parentElement);
     
             const dragHandler = createDragHandler({
                 minLength: 15 * 60 * 1000,
@@ -103,11 +102,15 @@ function Scheduler( props ) {
         }
         
         resize();
-        window.addEventListener('resize', resize);
+        // window.addEventListener('resize', resize);
+        
+        const resizeObserver = new ResizeObserver(resize);
+        resizeObserver.observe(parentElement);
         
         // @todo test that resize event has been removed
         return () => {
-            window.removeEventListener('resize', resize);
+            // window.removeEventListener('resize', resize);
+            resizeObserver.unobserve(parentElement);
         }
         
         
@@ -187,8 +190,10 @@ function Scheduler( props ) {
                 </div>
             )) }
     
-            { /*
             <Debug area= { area } />
+    
+            { /*
+            
              */ }
     
         </div>

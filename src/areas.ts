@@ -120,5 +120,29 @@ class MagneticGridDecorator implements Area
 
 }
 
+// @todo missing test
+class OffsetRelativeDragHandlerDecorator implements Area {
+
+    protected _area: Area;
+    protected _element: Element;
+    
+    constructor(area: Area, element: Element)
+    {
+        this._area    = area;
+        this._element = element;
+    }
+
+    public getValueAtCoord(coord: Coordinate): Nullable<number>
+    {
+        const { left, top } = this._element.getBoundingClientRect();
+
+        return this._area.getValueAtCoord({
+            clientX: coord.clientX - left,
+            clientY: coord.clientY - top
+        });
+    }
+}
+
+
 export type { Area, Coordinate, Range }
-export { Column, ColumnCollection, MagneticGridDecorator }
+export { Column, ColumnCollection, MagneticGridDecorator, OffsetRelativeDragHandlerDecorator }
