@@ -6,6 +6,8 @@ import createLayout from './layouts';
 
 import DailyColumnsEvent from './DailyColumnsEvent';
 
+import './DailyColumnsSheet.scss';
+
 const formatDateOptions = {
     weekday: 'short', 
     year:    'numeric', 
@@ -78,7 +80,9 @@ function DailyColumnsSheet( { events = [], days = [], hours = [], options = {} }
             { uniqid }
              */ }
 
-            <div ref = { parentRef } style = { { position: "relative" } } >
+            <div ref = { parentRef } 
+                 className = "daily-columns-sheet"
+                 style = { { position: "relative" } } >
 
                 <table className="react-ui-scheduler-table" 
                        style = { { width: "100%" } } >
@@ -190,11 +194,7 @@ function Lines( { columnsLayout } )
                     top, left, width
                  } }
             >
-                <div 
-                    style = { { 
-                        border: "1px dashed lightgray"
-                    } }
-                />
+                <div role="separator" />
             </div>
         )) }
         </Fragment>

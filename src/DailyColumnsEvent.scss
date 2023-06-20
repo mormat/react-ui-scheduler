@@ -1,0 +1,37 @@
+
+.mormat_react-scheduler .daily-columns-event {
+    
+    .scheduler-event {
+        
+        &-header {
+            font: caption;
+            font-size: 12px;
+            padding:   3px 3px 0 3px;
+        }
+    
+        &-body {
+            font: caption;
+            font-weight: bold;
+            padding:     0 3px 0 3px;
+        }
+        
+    }
+    
+    .moveable-scheduler-event {
+        cursor: move;
+    }
+    
+    .resizable-scheduler-event {
+        cursor: ns-resize;
+    }
+
+    .moving-scheduler-event, .resizing-scheduler-event {
+        opacity: 0.7;
+        z-index: 20;
+    }
+    
+    .forbidden {
+        cursor: not-allowed;
+    }
+    
+}

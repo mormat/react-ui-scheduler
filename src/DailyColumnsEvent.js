@@ -1,5 +1,7 @@
 import { createRef, useEffect, useState, Fragment } from 'react';
 
+import './DailyColumnsEvent.scss';
+
 // @todo 'draggable' is lame. use 'dragHandler != null' instead
 function DailyColumnsEvent( { value, columnsLayout, dragHandler, draggable, options = {} } ) {
         
@@ -65,12 +67,12 @@ function DailyColumnsEvent( { value, columnsLayout, dragHandler, draggable, opti
     const getMainClasses = () => {
         let classes = [];
         if (draggable) {
-            classes.push('react-ui-scheduler-event-draggable');
+            classes.push('moveable-scheduler-event');
         }
         if (['press', 'move'].includes(draggingState)) {
-            classes.push('react-ui-scheduler-event-moving');
+            classes.push('moving-scheduler-event');
             /* if (isOverlapping()) {
-                classes.push('react-ui-scheduler-event-dragging-forbidden');
+                classes.push('forbidden');
             } */
         }
         
@@ -80,12 +82,12 @@ function DailyColumnsEvent( { value, columnsLayout, dragHandler, draggable, opti
     const getResizeHandlerClasses = () => {
         let classes = [];
         if (draggable) {
-            classes.push('react-ui-scheduler-event-resizable');
+            classes.push('resizable-scheduler-event');
         }
         if (['press', 'move'].includes(draggingState)) {
-            classes.push('react-ui-scheduler-event-resizing');
+            classes.push('resizing-scheduler-event');
             /* if (isOverlapping()) {
-                classes.push('react-ui-scheduler-event-resizing-forbidden');
+                classes.push('forbidden');
             }*/
         }
         return classes.join(' ');
@@ -142,15 +144,15 @@ function DailyColumnsEvent( { value, columnsLayout, dragHandler, draggable, opti
     }
     
     return (
-        <Fragment>
+        <div className="daily-columns-event">
             <div className  = { "react-ui-scheduler-event " + getMainClasses() }
                  onMouseDown = { e => handleMouseDown(e, 'moving') }
                  style       = { { ...rect, backgroundColor, color, position: "absolute" } }
             >
-                <div className="react-ui-scheduler-eventHeader">
+                <div className="scheduler-event-header">
                     { header }
                 </div>
-                <div className="react-ui-scheduler-eventBody">
+                <div className="scheduler-event-body">
                     { label }
                 </div>
                 <div aria-label="resize event"  
@@ -160,7 +162,7 @@ function DailyColumnsEvent( { value, columnsLayout, dragHandler, draggable, opti
                 >
                 </div>
             </div>
-        </Fragment>
+        </div>
     )
     
 }

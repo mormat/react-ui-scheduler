@@ -1,0 +1,42 @@
+
+.mormat_react-scheduler .daily-columns-sheet {
+    
+    table {
+
+        font:  caption;
+        color: rgba(0, 0, 0, 0.54);
+        border-spacing: 0;
+
+        thead tr {
+            height: 38px;
+        }
+
+        tbody {
+            
+            tr:first-child th {
+                border-top: 1px solid lightgray;
+            }
+            
+            tr:last-child th {
+                border-bottom: 1px solid lightgray;
+            }
+            
+            th {
+                border-left:   1px solid lightgray;
+                border-right:  1px solid lightgray;
+            }
+            
+            td {
+                border: 1px solid lightgray;
+                border-left: none;
+            }   
+            
+        }
+        
+    }
+
+    div[role="separator"] {
+        border: 1px dashed lightgray
+    }
+    
+}

@@ -9,6 +9,8 @@ import { getDaysOfWeek, getHoursBetween } from './date-utils';
 import createEventsRepository from './events-managers';
 import { overlaps } from './events-managers';
 
+
+
 function Scheduler( config ) {
     
     const [currentDate, setCurrentDate] = useState(config.startDate);
@@ -42,7 +44,7 @@ function Scheduler( config ) {
     }, [currentDate]);
     
     return (
-        <div>
+        <div className="mormat_react-scheduler">
             <Header 
                 date         = { currentDate }
                 onDateChange = { setCurrentDate }

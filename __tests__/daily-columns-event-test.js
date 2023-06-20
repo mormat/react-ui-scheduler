@@ -206,7 +206,7 @@ describe('DailyColumnsEvent', () => {
             expect.objectContaining({ behavior })
         );
 
-        expect(displayedEvent).toHaveClass('react-ui-scheduler-event-' + behavior);
+        expect(displayedEvent).toHaveClass(behavior + '-scheduler-event');
         
         // moving the dragged event
         let e = new MouseEvent('mousemove', {clientX: 20, clientY: 30});
@@ -218,7 +218,7 @@ describe('DailyColumnsEvent', () => {
             expect.objectContaining({ behavior })
         );
         
-        expect(displayedEvent).toHaveClass('react-ui-scheduler-event-' + behavior);
+        expect(displayedEvent).toHaveClass(behavior + '-scheduler-event');
     
         // dropping the dragged event
         e = new MouseEvent('mouseup', {clientX: 20, clientY: 30});
@@ -230,7 +230,7 @@ describe('DailyColumnsEvent', () => {
             expect.objectContaining({ behavior })
         );
         
-        expect(displayedEvent).not.toHaveClass('react-ui-scheduler-event-' + behavior);
+        expect(displayedEvent).not.toHaveClass(behavior + '-scheduler-event');
     
         // move and release in dragHandler are ignored when item has been dropped
         dragHandler.move.mockClear();

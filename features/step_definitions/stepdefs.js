@@ -95,7 +95,6 @@ When('I move the event {string} to {string}', async function (string, date) {
     await actions.move({origin: column}).click().perform();
 });
 
-
 Then('I should see {string}', async function (expectedText) {
     
     const pageText =  await driver.findElement(By.tagName("body")).getText();
