@@ -1,6 +1,8 @@
 
 import { createRef, useEffect, useState } from 'react';
 
+import './Header.scss';
+
 function Header( { date, onDateChange } ) {
     
     const [currentTimestamp, setCurrentTimestamp] = useState(date ? new Date(date).getTime() : Date.now());
@@ -24,7 +26,7 @@ function Header( { date, onDateChange } ) {
     }
     
     return (
-        <div>
+        <div className="scheduler-header">
             <button onClick= { handlePreviousButton } title="Previous week">
                 &lt;
             </button>
