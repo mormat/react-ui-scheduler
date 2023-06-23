@@ -3,14 +3,12 @@ import { createRef, useEffect, useState, Fragment } from 'react';
 import './DailyColumnsEvent.scss';
 
 // @todo 'draggable' is lame. use 'dragHandler != null' instead
-function DailyColumnsEvent( { value, columnsLayout, dragHandler, draggable, options = {} } ) {
+function DailyColumnsEvent( { value, columnsLayout, dragHandler, draggable, onEventChanged, eventOffset } ) {
         
     const [rect,   setRect]   = useState(null);
     const [header, setHeader] = useState('');
     const [range,  setRange]  = useState({start: value.start, end: value.end});
     const [draggingState, setDraggingState] = useState(''); // @todo rename to dragInfos ?
-    
-    const { events = [] } = options;
     
     useEffect(() => {
 
@@ -48,10 +46,12 @@ function DailyColumnsEvent( { value, columnsLayout, dragHandler, draggable, opti
                 const parentRect = columnsLayout.element.getBoundingClientRect();
                 const ratio = columnRect.height / (max - min);
                 
+                const { current = 0, length = 1} = eventOffset || {};
+                
                 rect = {
-                    left: columnRect.left - parentRect.left,
+                    left: (columnRect.left - parentRect.left) + current * (columnRect.width / length),
                     top: (start - min) * ratio + columnRect.top - parentRect.top,
-                    width: columnRect.width,
+                    width: columnRect.width / length,
                     height: (end - start) * ratio
                 }
         
@@ -128,10 +128,8 @@ function DailyColumnsEvent( { value, columnsLayout, dragHandler, draggable, opti
     }
     
     useEffect(() => {
-        const { onEventChange } = options;
-        
-        if (draggingState === 'release' && onEventChange) {
-            onEventChange(value)    
+        if (draggingState === 'release' && onEventChanged) {
+            onEventChanged(value)    
         }
         
     }, [draggingState]);

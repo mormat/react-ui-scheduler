@@ -1,5 +1,5 @@
 
-import { ISchedulerEvent } from './types';
+import { ISchedulerEvent, IEventOffset } from '../src/types'
 
 interface Repository<K> {
     
@@ -43,6 +43,39 @@ function overlaps(event: ISchedulerEvent, otherEvent: ISchedulerEvent): boolean
     return false;
 }
 
+function calcEventsOffsets(events: ISchedulerEvent[]): Map<ISchedulerEvent, IEventOffset>
+{
+    const eventsPositions = new Map();
+
+    const intersections: any = events.map((event, index) => {
+
+        const otherEvents = events.filter(v => overlaps(event, v));
+        
+        const length = otherEvents.length + 1;
+
+        const allPositions = Array.from({length}, (_, k) => k);
+        const otherPositions = otherEvents.map(v => eventsPositions.get(v))
+            .filter(v => v !== undefined);
+        
+        const positions = allPositions.filter(v => !otherPositions.includes(v));
+        eventsPositions.set(event, Math.min(...positions));
+
+        return [event, otherEvents];
+    })
+
+    const results = new Map();
+    for (const [event, otherEvents] of intersections) {
+
+        const current = eventsPositions.get(event)!;
+        const otherPositions = otherEvents.map((v: any) => eventsPositions.get(v));
+        const length   = Math.max(current, ...otherPositions) + 1;
+
+        results.set(event, {current, length});
+    }
+
+    return results;
+}
+
 // @todo missing test
 function cleanEvent(rawSchedulerEvent: any): ISchedulerEvent {
 
@@ -65,4 +98,4 @@ function createEventsRepository( { items }: { items: any } ) {
 
 
 export default createEventsRepository
-export { ArrayEventsRepository, cleanEvent, overlaps }
+export { ArrayEventsRepository, cleanEvent, overlaps, calcEventsOffsets }

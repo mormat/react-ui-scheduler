@@ -44,5 +44,9 @@ interface IDragHandler<K>  {
     release(coord: Coordinate, subject: K, options: Dictionary<any>): void
 }
 
+interface IEventOffset {
+    current: number;
+    length:  number;
+}
 
-export { ISchedulerEvent, ISchedulerConfig, ILayout, IDragHandler, ICoordinate }
+export { ISchedulerEvent, ISchedulerConfig, ILayout, IDragHandler, ICoordinate, IEventOffset }

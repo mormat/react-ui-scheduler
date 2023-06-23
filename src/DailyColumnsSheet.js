@@ -129,7 +129,7 @@ function DailyColumnsSheet( { events = [], days = [], hours = [], options = {} }
                             events    = { events }
                             dragHandler = { dragHandler }
                             columnsLayout = { columnsLayout }
-                            options = { {...options,  dragHandler} }
+                            onEventChanged = { options.onEventChanged }
                             
                         />
                     </div>
