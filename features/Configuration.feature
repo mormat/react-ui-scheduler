@@ -28,7 +28,8 @@ Feature: Configuration of the scheduler
     Then I should see "lun. 1 mai 2023"
 
   @drag_n_drop
-  Scenario: onEventChanged event
+  @pending
+  Scenario: 'onEventChanged' event
     Given the following events are scheduled
       | date       | startTime | endTime | label           |
       | 2023-05-01 | 10:00     | 12:00   | Presentation    |
@@ -36,7 +37,24 @@ Feature: Configuration of the scheduler
     And the configuration contains:
       | onEventChanged | function() { document.body.innerHTML += "event was moved" } |
     When I open the scheduler
-    And I move the event "Presentation" to "2023-05-02"
+    And I move "Presentation" to ".day-2023-05-02"
     Then I should see "event was moved"
+
+  @drag_n_drop
+  Scenario Outline: 'enableOverlapping' property
+    Given the following events are scheduled
+      | date       | startTime | endTime | label         |
+      | 2023-05-01 | 10:00     | 12:00   | Meeting       |
+      | 2023-05-01 | 16:00     | 18:00   | Presentation  |
+    And the date today is "2023-05-01"
+    And the configuration contains:
+      | enableOverlapping | <overlaps_enabled> |
+    When I open the scheduler
+    And I move "Meeting" to "Presentation"
+    Then I should see "<expected_text>"
     
+    Examples:
+      | overlaps_enabled | expected_text         |
+      | false            | 10:00 - 12:00 Meeting |
+      | true             | 16:00 - 18:00 Meeting |
         

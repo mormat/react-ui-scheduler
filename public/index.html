@@ -35,6 +35,7 @@
                 var interval = 24 * 60 * 60 * 1000;
 
                 scheduler.bind('#root', {
+                  enableOverlapping: true,
                   minHour: 8,
                   maxHour: 20,
                   events: [

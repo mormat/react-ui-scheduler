@@ -60,45 +60,34 @@ When('I open the scheduler', async function () {
 
 When('I click on {string}', async function (string) {
     
-    const attempts = [
-        By.css(string),
-        By.xpath(`//*[contains(text(), '${string}')]`),
-        By.css(`[title^='${string}']`),
-    ];
-    
-    let element;
-    for (let attempt of attempts) {
-        try {
-            element = await driver.findElement(attempt);
-        } catch (err) {
-            continue;
-        }
-    }
+    const element = await findElementByExpr(string);
     
     if (!element) {
         throw `No element matching '${string}' was found`
     }
     
     element.click();
+    
 });
 
-When('I move the event {string} to {string}', async function (string, date) {
+
+
+When('I move {string} to {string}', async function (origin, target) {
     
     const actions = driver.actions({async: true});
     
-    const element = driver.findElement(By.xpath(
-        css2xpath(`.react-ui-scheduler-event:contains('${string}')`)
-    ));
-    await actions.move({origin: element}).press().perform();
+    const draggable = await findElementByExpr(origin);
     
-    const column = driver.findElement(By.css(`[data-datemin^='${date}']`));
-    await actions.move({origin: column}).click().perform();
+    const droppable = await findElementByExpr(target);
+    
+    actions.dragAndDrop(draggable, droppable).perform();
+
 });
 
 Then('I should see {string}', async function (expectedText) {
     
-    const pageText =  await driver.findElement(By.tagName("body")).getText();
-    
+    let pageText =  await driver.findElement(By.tagName("body")).getText();
+    pageText = pageText.replaceAll('\n', " ");
     expect(pageText).toContain(expectedText);
 });
 
@@ -124,17 +113,37 @@ Then('only the items checked below should be visible', async function (dataTable
     
 });
 
-
 AfterAll(function() {
     driver.close();
 });
 
 function serializeConfig(config) {
     const items = Object.keys(config).map(key => {
-        const value = key.startsWith('on') ? config[key] : JSON.stringify(config[key]);
+        let value;
+        if (key.startsWith('on')) {
+            value = config[key];
+        } else if (['true', 'false'].includes(config[key])) {
+            value = config[key];
+        } else {
+            value = JSON.stringify(config[key]);
+        }
         return `"${key}":${value}`;
     });
     return items.length > 0 ? '{' + items.join(',') + '}' : '';
+}
+
+const findElementByExpr = async (expr) => {
+    const attempts = [
+        By.css(expr),
+        By.xpath(`//*[contains(text(), '${expr}')]`),
+        By.css(`[title^='${expr}']`),
+    ];
+    
+    for (let attempt of attempts) {
+        try {
+            return await driver.findElement(attempt);
+        } catch (err) { }
+    }
 }
 
 /*

@@ -33,8 +33,11 @@ function Scheduler( config ) {
     }
     
     const isEventValid = (schedulerEvent) => {
-        const overlappingEvents = events.filter(v => overlaps(schedulerEvent, v));
-        return overlappingEvents.length === 0;
+        if (!config.enableOverlapping) {
+            const overlappingEvents = events.filter(v => overlaps(schedulerEvent, v));
+            return overlappingEvents.length === 0;
+        }
+        return true;
     }
     
     useEffect(() => {

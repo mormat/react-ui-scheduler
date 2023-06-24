@@ -1,10 +1,11 @@
 import { createRef, useEffect, useState, Fragment } from 'react';
 
-import { createDragHandler } from './drag-handlers';
+import DailyColumnsEvent from './DailyColumnsEvent';
 
+import { createDragHandler } from './drag-handlers';
+import { calcEventsOffsets } from './events-managers';
 import createLayout from './layouts';
 
-import DailyColumnsEvent from './DailyColumnsEvent';
 
 import './DailyColumnsSheet.scss';
 
@@ -25,6 +26,8 @@ function DailyColumnsSheet( { events = [], days = [], hours = [], options = {} }
     const { rowHeight = 50 } = options;
     const { draggable = true } = options;
     // const uniqid = Math.random().toString(16).slice(2);
+    
+    const eventsOffsets = calcEventsOffsets(events)
     
     useEffect(() => {
         
@@ -106,6 +109,7 @@ function DailyColumnsSheet( { events = [], days = [], hours = [], options = {} }
                                 </th>
                                 { index === 0 && days.map( (day, index) => (
                                     <td key = { index } 
+                                        className = { `day-${day}` }
                                         rowSpan={ hours.length - 1 }
                                         data-datemin= { day + ' ' + hours[0] }
                                         data-datemax= { day + ' ' + hours[hours.length - 1]}
@@ -130,7 +134,7 @@ function DailyColumnsSheet( { events = [], days = [], hours = [], options = {} }
                             dragHandler = { dragHandler }
                             columnsLayout = { columnsLayout }
                             onEventChanged = { options.onEventChanged }
-                            
+                            eventOffset = { eventsOffsets.get(event) }
                         />
                     </div>
                 )) }

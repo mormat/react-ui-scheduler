@@ -74,9 +74,11 @@ describe('DailyColumnsEvent', () => {
     })
 
     test.each([
-        ["2023-06-01 08:00", "2023-06-01 12:00", "80",  "40"],
-        ["2023-06-01 10:00", "2023-06-01 20:00", "100", "100"],
-    ])("Event from '%s' to '%s' should be located at (%s,%s)", (start, end, top, height) => {
+        ["2023-06-01 08:00", "2023-06-01 12:00", "80",  "40",  "50", "50", undefined],
+        ["2023-06-01 10:00", "2023-06-01 20:00", "100", "100", "50", "50", undefined],
+        ["2023-06-01 08:00", "2023-06-01 12:00", "80",  "40",  "75", "25", {current: 1, length: 2}],
+    ])("Event from '%s' to '%s' should be located at (%s,%s)", 
+        (start, end, top, height, left, width, eventOffset) => {
            
         const { container } = render(
             <DailyColumnsEvent 
@@ -85,6 +87,7 @@ describe('DailyColumnsEvent', () => {
                     start: new Date(start),
                     end:   new Date(end)
                 }}
+                eventOffset = { eventOffset }
                 { ...getDefaultProps() }
             />
         );
@@ -92,8 +95,8 @@ describe('DailyColumnsEvent', () => {
         const displayedEvent = container.querySelector('.react-ui-scheduler-event');
         expect(displayedEvent).toHaveStyle(`top: ${top}px`);
         expect(displayedEvent).toHaveStyle(`height: ${height}px`);
-        expect(displayedEvent).toHaveStyle("left: 50px");
-        expect(displayedEvent).toHaveStyle("width: 50px");
+        expect(displayedEvent).toHaveStyle(`left: ${left}px`);
+        expect(displayedEvent).toHaveStyle(`width: ${width}px`);
         
     });
     
